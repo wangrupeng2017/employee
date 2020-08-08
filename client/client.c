@@ -6,11 +6,7 @@
  * Create Time : 2020-08-08 08:18:14
  * Description : 员工管理系统，客户端
  *******************************************************/
-#include <stdio.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <errno.h>
-#include "common/socket_models.h"
+#include "client.h"
 
 // 连接socket服务器 
 
@@ -26,30 +22,35 @@
  * @Author      xuyuanbing
  * @Other       
  */
-int connectServer(char[20] ip, int port)
+int connectServer(char *ip, int port)
 {
 	int fd = -1;
-	if( (fd == socket(AF_INET, SOCK_STREAM, 0)) < 0){
+	if( (fd = socket(AF_INET, SOCK_STREAM, 0)) < 0){
 		perror("open socket tcp");
 		return fd;
 	}
 
+
 	// 创建结构体
 	struct sockaddr_in server_address;
 	bzero(&server_address, sizeof(server_address));
+	
 	server_address.sin_family = AF_INET;
 	server_address.sin_port = htons(port);
-	if(inet_pton(AF_INET, ip, &server_address.sin_addr.s_addr) != 1){
+	
+	if(inet_pton(AF_INET, ip, (void *)&server_address.sin_addr.s_addr) != 1){
 		perror("string ip convert");
 		return -1;
 	}
-	if( connect(fd, (struct * sockaddr)&server_address, sizeof(server_address)) < 0 ){
+
+	if( connect(fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0 ){
 		perror("connect service");
 		return -1;
 	}
 
 	return fd;
 }
+
 /*
  * function:    
  * @param [ in] 
@@ -89,7 +90,7 @@ int getHomeMenuChoose(void)
 	printf("请输入您需要的服务：");
 	while(!(choose = getchar()));
 	
-	return atoi(choose);
+	return choose - '0';
 }
 
 // 解析菜单输入
@@ -109,7 +110,7 @@ void gotoChoose(int userChoose)
 
 
 // 登录业务:
-int login_business(void)
+int loginBusiness(int fd)
 {
 	int ret = 1;
 	LoginModel login_model;
@@ -117,7 +118,7 @@ int login_business(void)
 		return Failed;
 	}
 	LoginResultModel result_model;
-	if(Failed == sendLoginRequest(&login_model, &result_model)){
+	if(Failed == sendLoginRequest(fd, &login_model, &result_model)){
 		return Failed;
 	}
 }
@@ -135,15 +136,18 @@ int login_business(void)
  * @Author     : xuyuanbing
  * @Other      : 
  */
-static int getLoginModel(LoginModel *model)
+int getLoginModel(LoginModel *model)
 {
-	char[32] word = {0};
+	char word[32] = {0};
 	printf("请输入您的用户名：");
-	gets(word);
+	fgets(word, sizeof(word), stdin);
+	word[strlen(word) -1] = '\0'; // fgets 自动在最后添加一个 '\n' 
 	strncpy(model->name, word, sizeof(model->name) - 1);
+
 	printf("请输入您的密码：");
 	memset(word, 0, sizeof(word));
-	gets(word);
+	fgets(word, sizeof(word), stdin); 
+	word[strlen(word) -1] = '\0';  // fgets 自动在最后添加一个 '\n'
 	strncpy(model->pwd, word, sizeof(model->pwd) - 1);
 
 	return 0;
@@ -168,9 +172,10 @@ static int sendLoginRequest(int fd, LoginModel *model, LoginResultModel *out)
 	int ret = -1;
 	do
 	{
-		ret = send(fd, *model, sizeof(model), 0);
+		ret = send(fd, (void *)model, sizeof(LoginModel), 0);
 	} while (ret < 0 && EINTR == errno);
 
+#if 0
 	do
 	{
 		ret = recv(fd, model, sizeof(model), 0);
@@ -178,18 +183,8 @@ static int sendLoginRequest(int fd, LoginModel *model, LoginResultModel *out)
 	if( ret < 0 ){
 		perror(" send login model");
 	}
+#endif
 
-	return ret < 0 : Failed: Success;
+	return ret < 0 ? Failed: Success;
 }
 
-
-// 本地测试
-int main(int argc, const char *argv[])
-{
-	LoginModel login_model;
-	int ret = 0;
-	ret = _getLoginModel(&login_model);
-	printf(" ret = %d, login_model->name= %s, login_model-->pwd= %s\n", login_model.name, login_model,pwd);
-
-	return 0;
-}

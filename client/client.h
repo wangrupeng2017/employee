@@ -1,8 +1,16 @@
 #ifndef __CLIENT_H__
 #define __CLIENT_H__
 
+#include <stdio.h>
+#include <string.h>
+#include <arpa/inet.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <errno.h>
+#include "../common/socket_models.h"
+
 // 连接socket服务器 
-int connectServer(char[20] ip, int port);
+int connectServer(char* ip, int port);
 
 // 打印首页菜单
 void showHomeMenu(void);
@@ -15,13 +23,13 @@ void gotoChoose(int userChoose);
 
 
 // 登录业务:
-int login_business(void);
+int loginBusiness(int);
 
 //  交互获取登录信息 用户名/密码 格式化登录数据:::
-    static int get_login_model(struct LoginModel *model);
+     int getLoginModel( LoginModel *model);
 
  // 发送登录请求, 接收结果:::
-   static int send_login_request(struct LoginModel *model, struct LoginResultModel *out);
+   static int sendLoginRequest(int,  LoginModel *model,  LoginResultModel *out);
 
 
 

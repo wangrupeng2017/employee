@@ -15,8 +15,8 @@ typedef unsigned int  uint;
 
 // 性别类型
 typedef enum SexType {
-	Male   = 1;
-	Female = 2;
+	Male   = 1,
+	Female = 2,
 } SexType;
 
 // 请求类型
