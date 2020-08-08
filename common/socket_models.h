@@ -10,8 +10,8 @@
 #ifndef __SOCKET_MODELS_H__
 #define __SOCKET_MODELS_H__
 
-typedef unsigned char uchar;
-typedef unsigned int  uint;
+#include "common_base.h"
+
 
 // 性别类型
 typedef enum SexType {
@@ -46,84 +46,84 @@ typedef struct ResponseInfo {
 	RequestType  type;
 	uint         size;
 	ResultStatus result;
-	char         message[20];
+	char         message[RES_MESSAGE_SIZE];
 } ResponseInfo;
 
 // 登录系统请求/响应结构
 typedef struct LoginModel {
-	char name[20];
-	char pwd[20];
+	char name[EMPLOYEE_NAME_SIZE];
+	char pwd[EMPLOYEE_PWD_SIZE];
 } LoginModel;
 typedef struct LoginResult {
-	char token[20];
-	char name[20];
+	char token[LOGIN_TOKEN_SIZE];
+	char name[EMPLOYEE_NAME_SIZE];
 	uint empno;
 } LoginResultModel;
 
 // 退出系统请求/响应结构
 typedef struct QuitModel {
-	char token[20];
+	char token[LOGIN_TOKEN_SIZE];
 } QuitModel;
 
 // 查询员工请求/响应结构
 typedef struct EmployeeQueryModel {
-	char token[20];
-	char name[20];
+	char token[LOGIN_TOKEN_SIZE];
+	char name[EMPLOYEE_NAME_SIZE];
 	uint empno;
 } EmployeeQueryModel;
 typedef struct EmployeeQueryResult {
 	uint  empno;
-	char  name[20];
-	char  pwd[20];
+	char  name[EMPLOYEE_NAME_SIZE];
+	char  pwd[EMPLOYEE_PWD_SIZE];
 	uchar sex;
 	uchar age;
 	uint  salary;
-	char  department[20];
+	char  department[EMPLOYEE_DEPARTMENT_SIZE];
 } EmployeeQueryResult;
 
 // 修改员工请求/响应结构
 typedef struct EmployeeModifyModel {
-	char  token[20];
+	char  token[LOGIN_TOKEN_SIZE];
 	uint  empno;
-	char  name[20];
-	char  pwd[20];
+	char  name[EMPLOYEE_NAME_SIZE];
+	char  pwd[EMPLOYEE_PWD_SIZE];
 	uchar sex;
 	uchar age;
 	uint  salary;
-	char  department[20];
+	char  department[EMPLOYEE_NAME_SIZE];
 } EmployeeModifyModel; 
 
 // 创建新员工请求/响应结构
 typedef struct EmployeeCreateModel {
-	char  token[20];
-	char  name[20];
-	char  pwd[20];
+	char  token[LOGIN_TOKEN_SIZE];
+	char  name[EMPLOYEE_NAME_SIZE];
+	char  pwd[EMPLOYEE_PWD_SIZE];
 	uchar sex;
 	uchar age;
 	uint  salary;
-	char  department[20];
+	char  department[EMPLOYEE_DEPARTMENT_SIZE];
 } EmployeeCreateModel;
 typedef struct EmployeeCreateResult {
 	uint  empno;
-	char  name[20];
-	char  pwd[20];
+	char  name[EMPLOYEE_NAME_SIZE];
+	char  pwd[EMPLOYEE_PWD_SIZE];
 } EmployeeCreateResult;
 
 // 删除员工请求/响应结构
 typedef struct EmployeeDeleteModel {
-	char token[20];
+	char token[LOGIN_TOKEN_SIZE];
 	uint empno;
 } EmployeeDeleteModel;
 
 // 日志查询请求/响应结构
 typedef struct LogQueryModel {
-	char token[20];
-	char date[20];
+	char token[LOGIN_TOKEN_SIZE];
+	char date[LOG_TIME_SIZE];
 } LogQueryModel;
 typedef struct LogQueryResult {
-	char name[20];
-	char describe[50];
-	char date[20];
+	char name[EMPLOYEE_NAME_SIZE];
+	char describe[LOG_DESCRIBE_SIZE];
+	char date[LOG_TIME_SIZE];
 } LogQueryResult;
 
 
