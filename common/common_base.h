@@ -20,4 +20,7 @@ typedef unsigned int  uint;
 #define QUERY_EMPLOYEE_COUNT 20
 #define QUERY_LOG_COUNT 20
 
+#define IP_SIZE 20
+
+
 #endif //__COMMON_BASE_H__
