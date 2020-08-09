@@ -7,8 +7,6 @@
 
 #include "socket_models.h"
 
-#define TRY_ERROR(expr, fname, ...)  if (expr) { perror(fname); __VA_ARGS__; exit(1); }
-
 #define SERVER_PORT 9999
 #define SERVER_IP   "127.0.0.1"
 #define QUIT        "quit"
@@ -36,41 +34,44 @@ int main(int argc, const char *argv[])
     // 2.连接服务端
     ret = connect(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr));
     TRY_ERROR(ret==-1, "connect", goto error_label);
-/** // 登录
+
+#define REQ_TYPE 1
+#if REQ_TYPE == 1
+// 登录
 	RequestInfo req = {
 		.type = Login,
 		.size = sizeof(LoginModel)
 	};
 	LoginModel model = {
-		.name = "123",
+		.name = "张三",
 		.pwd  = "123"
 	};
 	ResponseInfo res = {0};
 	LoginResultModel res_model = {0};
-**/
-/** // 退出
+#elif REQ_TYPE == 2
+// 退出
 	RequestInfo req = {
 		.type = Quit,
 		.size = sizeof(QuitModel)
 	};
 	QuitModel model = {
-		.empno = 1
+		.empno = 2
 	};
 	ResponseInfo res = {0};
 	LoginResultModel res_model = {0};
-**/
-/** // 查询
+#elif REQ_TYPE == 3
+// 查询
 	RequestInfo req = {
 		.type = EmployeeQuery,
 		.size = sizeof(EmployeeQueryModel)
 	};
 	EmployeeQueryModel model = {
-		.name  = "",
-		.empno = 1
+		.name  = "张三",
+		.empno = 0 
 	};
 	ResponseInfo res = {0};
 	EmployeeQueryResult res_model = {0};
-**/
+#elif REQ_TYPE == 4
 // 修改
 	RequestInfo req = {
 		.type = EmployeeModify,
@@ -78,7 +79,7 @@ int main(int argc, const char *argv[])
 	};
 	EmployeeModifyModel model = {
 		.empno = 2,
-		.name  = "王五",
+		.name  = "张三",
 		.pwd   = "123",
 		.sex   = 1,
 		.age   = 10,
@@ -87,8 +88,8 @@ int main(int argc, const char *argv[])
 	};
 	ResponseInfo res = {0};
 	EmployeeQueryResult res_model = {0};
-
-/** // 创建
+#elif REQ_TYPE == 5
+// 创建
 	RequestInfo req = {
 		.type = EmployeeAdd,
 		.size = sizeof(EmployeeCreateModel)
@@ -103,29 +104,30 @@ int main(int argc, const char *argv[])
 	};
 	ResponseInfo res = {0};
 	EmployeeCreateResult res_model = {0};
-**/
-/** // 删除
+#elif REQ_TYPE == 6
+// 删除
 	RequestInfo req = {
 		.type = EmployeeDelete,
 		.size = sizeof(EmployeeDeleteModel)
 	};
 	EmployeeDeleteModel model = {
-		.empno = 1
+		.empno = 2
 	};
 	ResponseInfo res = {0};
 	EmployeeCreateResult res_model = {0};
-**/
-/** // 日志查询
+#elif REQ_TYPE == 7
+// 日志查询
 	RequestInfo req = {
 		.type = LogsQuery,
 		.size = sizeof(LogQueryModel)
 	};
 	LogQueryModel model = {
-		.date = "2018-09-10"
+		.date = "2020-8-9"
 	};
 	ResponseInfo res = {0};
 	LogQueryResult res_model = {0};
-**/
+#endif
+
     while(1)
     {
 		// 发送消息
@@ -156,14 +158,42 @@ int main(int argc, const char *argv[])
 		}/*}}}*/
 		printf("%s, %d, %d\n", res.message, ret, sizeof(ResponseInfo));
 		if (res.size > 0)
-		{/*{{{*/
+		{
 			ret = recv(sockfd, &res_model, sizeof(res_model), 0);
 			if (ret <=0 )
 			{
-				puts("接收响应头失败");
+				puts("接收响应体失败");
 				return -1;
 			}
-		}/*}}}*/
+#if REQ_TYPE == 1
+			printf("name=%s, empno=%d, role=%d\n", res_model.name, res_model.empno, res_model.role);
+#elif REQ_TYPE == 3
+			printf("size:%d, sigin_size:%d, empno:%d, name:%s, pwd:%s, sex:%d, \
+					age:%d, salary:%d, department:%s\n", res.size, sizeof(res_model), \
+					res_model.empno, res_model.name, res_model.pwd, res_model.sex, res_model.age, \
+					res_model.salary, res_model.department);
+			int k = 0;
+			for (k=1; k<(res.size/sizeof(res_model)); k++)
+			{
+				ret = recv(sockfd, &res_model, sizeof(res_model), 0);
+				printf("size:%d, sigin_size:%d, empno:%d, name:%s, pwd:%s, sex:%d, \
+						age:%d, salary:%d, department:%s\n", res.size, sizeof(res_model), \
+						res_model.empno, res_model.name, res_model.pwd, res_model.sex, res_model.age, \
+						res_model.salary, res_model.department);
+			}
+#elif REQ_TYPE == 7
+			printf("size:%d, sig_size:%d, empno:%d, desc:%s, time:%s\n", res.size, sizeof(res_model),
+					res_model.empno, res_model.describe, res_model.date);
+			int k = 0;
+			for (k=1; k<(res.size/sizeof(res_model)); k++)
+			{
+				ret = recv(sockfd, &res_model, sizeof(res_model), 0);
+				printf("size:%d, sig_size:%d, empno:%d, desc:%s, time:%s\n", res.size, sizeof(res_model),
+					res_model.empno, res_model.describe, res_model.date);
+			}
+
+#endif 
+		}
 
 
 		

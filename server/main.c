@@ -42,7 +42,7 @@ int main(int argc, const char *argv[])
 	while(1)
 	{
 		int ret = poll(pollfds, nfds, POLL_TIMEOUT);
-		TRY_ERROR(ret==0, "poll() timeout", continue);
+		//TRY_ERROR(ret==0, "poll() timeout", continue);
 		TRY_PERROR(ret==-1, "poll():", return FuncError);
 
 		int i       = 0;

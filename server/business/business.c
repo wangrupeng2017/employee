@@ -9,12 +9,32 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
 #include "business.h"
 #include "mysqlite3.h"
+
+
+/*
+ * function:    saveLogs
+ * description: 记录日志
+ * @param [ in] 
+ * 	 empno    : 操作者员工号
+ * 	 message  : 日志内容
+ */
+void saveLogs(uint empno, char message[50])
+{
+	LogInfo info = {0};
+	info.empno = empno;
+	info.time  = time(NULL);
+	strcpy(info.description, message);
+
+	createLogInfo(&info);
+}
+
 
 /*
  * function:    loginHandler
@@ -25,7 +45,7 @@
  * @return      0:处理成功 !0:处理出错
  */
 int loginHandler(int sockfd, RequestInfo *info)
-{
+{/*{{{*/
 	LoginModel model   = {0};
 	EmployeeInfo einfo = {0};
 	LoginResultModel result = {0};
@@ -49,12 +69,16 @@ int loginHandler(int sockfd, RequestInfo *info)
 	ret = createLoginStateInfo(&einfo);
 	if (ret < 0) return FuncError;
 
+	// 记录操作日志
+	saveLogs(einfo.empno, "登录系统");
+
 	// 返回登录成功信息
 	res.size   = sizeof(result);
 	res.result = Success;
 	strcpy(res.message, "登录成功");	
 	
 	result.empno = einfo.empno;
+	result.role  = einfo.role;
 	strcpy(result.name, einfo.name);
 	return responseMessage(sockfd, &res, &result);
 
@@ -62,7 +86,7 @@ LOGIN_FAILE_LABEL:
 	strcpy(res.message, "用户名或密码错误");	
 	ret = responseMessage(sockfd, &res, NULL); 
 	return ret;
-}
+}/*}}}*/
 
 /*
  * function:    quitHandler
@@ -89,6 +113,9 @@ int quitHandler(int sockfd, RequestInfo *info)
 	// 删除登录信息
 	ret = deleteLoginStateInfo(model.empno);
 	if (ret < 0) goto SERVER_ERR_LABEL;
+
+	// 记录日志
+	saveLogs(model.empno, "退出系统");
 
 	// 返回登录成功信息
 	res.result = Success;
@@ -126,6 +153,9 @@ int employeeQueryHandler(int sockfd, RequestInfo *info)
 	// 查询员工信息
 	ret = queryEmployeeInfo(model.empno, model.name, result);
 	if (ret < 0) goto SERVER_ERR_LABEL;
+
+	// 记录日志
+	saveLogs(model.empno, "查询员工信息");
 
 	// 返回查询成功信息
 	res.result = Success;
@@ -172,6 +202,9 @@ int employeeModifyHandler(int sockfd, RequestInfo *info)
 	ret = modifyEmployeeInfo(&employee);
 	if (ret < 0) goto SERVER_ERR_LABEL;
 
+	// 记录日志
+	saveLogs(model.empno, "修改信息");
+
 	// 返回查询成功信息
 	res.result = Success;
 	strcpy(res.message, "修改成功");	
@@ -216,6 +249,9 @@ int employeeAddHandler(int sockfd, RequestInfo *info)
 	ret = createEmployeeInfo(&employee, &empno);
 	if (ret < 0) goto SERVER_ERR_LABEL;
 
+	// 记录日志
+	saveLogs(empno, "创建新员工");	
+
 	// 返回创建成功消息
 	res.result = Success;
 	res.size   = sizeof(result);
@@ -256,6 +292,9 @@ int employeeDeleteHandler(int sockfd, RequestInfo *info)
 	ret = deleteEmployeeInfo(model.empno);
 	if (ret < 0) goto SERVER_ERR_LABEL;
 
+	// 记录日志
+	saveLogs(model.empno, "删除员工");
+
 	// 返回创建成功消息
 	res.result = Success;
 	strcpy(res.message, "删除成功");
@@ -276,7 +315,7 @@ SERVER_ERR_LABEL:
  * @return      0:处理成功 !0:处理出错
  */
 int logsQueryHandler(int sockfd, RequestInfo *info)
-{/*{{{*/
+{
 	LogQueryModel model = {0};
 	ResponseInfo res = {
 		.type    = info->type,
@@ -284,7 +323,7 @@ int logsQueryHandler(int sockfd, RequestInfo *info)
 		.result  = Failed,
 		.message = ""
 	};
-	LogInfo result[QUERY_LOG_COUNT] = {0};
+	LogQueryResult result[QUERY_LOG_COUNT] = {0};
 
 	// 接收查询日志消息
 	int ret = recv(sockfd, &model, sizeof(model), 0);
@@ -295,7 +334,7 @@ int logsQueryHandler(int sockfd, RequestInfo *info)
 
 	// 返回查询成功消息
 	res.result = Success;
-	res.size   = sizeof(LogInfo) * ret;
+	res.size   = sizeof(LogQueryResult) * ret;
 	strcpy(res.message, "查询成功");
 	return responseMessage(sockfd, &res, result);
 
@@ -304,6 +343,6 @@ SERVER_ERR_LABEL:
 	// 返回服务错误
 	strcpy(res.message, "服务错误");	
 	return responseMessage(sockfd, &res, NULL); 
-}/*}}}*/
+}
 
 

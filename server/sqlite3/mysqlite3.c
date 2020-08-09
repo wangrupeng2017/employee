@@ -67,7 +67,7 @@ int closeSQL()
  * @return      0:处理成功 !0:处理出错
  */
 int checkEmployeeInfo(char name[EMPLOYEE_NAME_SIZE], char pwd[EMPLOYEE_PWD_SIZE], EmployeeInfo *info)
-{/*{{{*/
+{
 	char sql[256]  = "";
 	char **result  = NULL;
 	char *pzErrmsg = NULL;
@@ -81,9 +81,9 @@ int checkEmployeeInfo(char name[EMPLOYEE_NAME_SIZE], char pwd[EMPLOYEE_PWD_SIZE]
 					    WHERE name='%s' \
 					    AND password='%s';";
 	sprintf(sql, sql_format, name, pwd); printf("%s\n", sql);
+
 	int ret = sqlite3_get_table(db_instance, sql, &result, &nRow, &nColumn, &pzErrmsg);
 	TRY_SQLITE_ERROR(ret!=SQLITE_OK, "查询员工:", db_instance, return FuncError);
-
 	
 	// 格式化员工信息
 	if (nRow > 0)
@@ -99,7 +99,7 @@ int checkEmployeeInfo(char name[EMPLOYEE_NAME_SIZE], char pwd[EMPLOYEE_PWD_SIZE]
 	}
 
 	return FuncNormal;
-}/*}}}*/
+}
 
 /*
  * function:    createEmployeeInfo
@@ -111,7 +111,7 @@ int checkEmployeeInfo(char name[EMPLOYEE_NAME_SIZE], char pwd[EMPLOYEE_PWD_SIZE]
  * @return      0:处理成功 !0:处理出错
  */
 int createEmployeeInfo(EmployeeInfo *info, uint *empno)
-{/*{{{*/
+{
 	char **result  = NULL;
 	char *pzErrmsg = NULL;
 	int nRow       = 0;
@@ -121,17 +121,18 @@ int createEmployeeInfo(EmployeeInfo *info, uint *empno)
 	TRY_SQLITE_ERROR(ret!=SQLITE_OK, "查询最大员工号:", db_instance, return FuncError);
 	(nRow == 0) ? (*empno = 1) : (*empno = atoi(result[1*nColumn + 0]) + 1);
 
-	// 创建员工
+	// 存储新员工信息
 	char sql[256] = "";
 	char *sql_format = "INSERT INTO employee(no, age, sex, salary, role, name, password, department) \
 					   VALUES('%ld', '%d', '%d', '%d', '%d', '%s', '%s', '%s');";
 	sprintf(sql, sql_format, *empno, info->age, info->sex, info->salary, info->role, \
 			info->name, info->pwd, info->department);
+
 	ret = sqlite3_exec(db_instance, sql, NULL, NULL, NULL);
 	TRY_SQLITE_ERROR(ret!=SQLITE_OK, "创建员工:", db_instance, return FuncError);
 
 	return FuncNormal;
-}/*}}}*/
+}
 
 /*
  * function:    deleteEmployeeInfo
@@ -141,16 +142,16 @@ int createEmployeeInfo(EmployeeInfo *info, uint *empno)
  * @return      0:处理成功 !0:处理出错
  */
 int deleteEmployeeInfo(uint empno)
-{/*{{{*/
+{
 	char sql[256] = "";
-	char *sql_format = "DELETE FROM employee \
-					   WHERE no='%u';";
+	char *sql_format = "DELETE FROM employee  WHERE no='%u';";
 	sprintf(sql, sql_format, empno);
+
 	int ret = sqlite3_exec(db_instance, sql, NULL, NULL, NULL);
 	TRY_SQLITE_ERROR(ret!=SQLITE_OK, "删除员工:", db_instance, return FuncError);
 
 	return FuncNormal;
-}/*}}}*/
+}
 
 /*
  * function:    modifyEmployeeInfo
@@ -160,20 +161,20 @@ int deleteEmployeeInfo(uint empno)
  * @return      0:处理成功 !0:处理出错
  */
 int modifyEmployeeInfo(EmployeeInfo *info)
-{/*{{{*/
+{
 	char sql[256] = "";
 	char *sql_format = "UPDATE employee \
 					   SET age='%d', sex='%d', salary='%d', role='%d', \
 					       name='%s', password='%s', department='%s' \
 					   WHERE no='%d'";
-	
 	sprintf(sql, sql_format, info->age, info->sex, info->salary, info->role, \
 			info->name, info->pwd, info->department, info->empno);
+
 	int ret = sqlite3_exec(db_instance, sql, NULL, NULL, NULL);
 	TRY_SQLITE_ERROR(ret!=SQLITE_OK, "修改员工:", db_instance, return FuncError);
 			
 	return FuncNormal;
-}/*}}}*/
+}
 
 /*
  * function:    queryEmployeeInfo
@@ -186,7 +187,7 @@ int modifyEmployeeInfo(EmployeeInfo *info)
  * @return      查询数量
  */
 int queryEmployeeInfo(uint empno, char name[EMPLOYEE_NAME_SIZE], EmployeeInfo info[QUERY_EMPLOYEE_COUNT])
-{/*{{{*/
+{
 	char sql[256]  = "";
 	char **result  = NULL;
 	char *pzErrmsg = NULL;
@@ -205,9 +206,8 @@ int queryEmployeeInfo(uint empno, char name[EMPLOYEE_NAME_SIZE], EmployeeInfo in
 
 	int ret = sqlite3_get_table(db_instance, sql, &result, &nRow, &nColumn, &pzErrmsg);
 	TRY_SQLITE_ERROR(ret!=SQLITE_OK, "查询员工:", db_instance, return FuncError);
-	// 最多查询20条
-	if (nRow > 20) 
-		nRow = 20;
+	if (nRow > QUERY_EMPLOYEE_COUNT) 
+		nRow = QUERY_EMPLOYEE_COUNT;
 
 	// 格式化查询结果
 	int i = 0;
@@ -226,7 +226,7 @@ int queryEmployeeInfo(uint empno, char name[EMPLOYEE_NAME_SIZE], EmployeeInfo in
 	}
 
 	return nRow;
-}/*}}}*/
+}
 
 /*
  * function:    createLogInfo
@@ -236,16 +236,17 @@ int queryEmployeeInfo(uint empno, char name[EMPLOYEE_NAME_SIZE], EmployeeInfo in
  * @return      0:处理成功 !0:处理出错
  */
 int createLogInfo(LogInfo *info)
-{/*{{{*/
+{
 	char sql[256] = "";
 	char *sql_format = "INSERT INTO operation_log(no, description, time) \
-					   VALUES('%d', '%s', '%s');";
+					   VALUES('%d', '%s', '%ld');";
 	sprintf(sql, sql_format, info->empno, info->description, info->time);
+
 	int ret = sqlite3_exec(db_instance, sql, NULL, NULL, NULL);
 	TRY_SQLITE_ERROR(ret!=SQLITE_OK, "创建日志:", db_instance, return FuncError);
 
 	return FuncNormal;
-}/*}}}*/
+}
 
 /*
  * function:    queryLogInfo
@@ -256,8 +257,8 @@ int createLogInfo(LogInfo *info)
  *   info     : 日志信息
  * @return      查询数量
  */
-int queryLogInfo(char time[LOG_TIME_SIZE], LogInfo info[QUERY_LOG_COUNT])
-{/*{{{*/
+int queryLogInfo(char time[LOG_TIME_SIZE], LogQueryResult info[QUERY_LOG_COUNT])
+{
 	char **result  = NULL;
 	char *pzErrmsg = NULL;
 	int nRow       = 0;
@@ -265,25 +266,28 @@ int queryLogInfo(char time[LOG_TIME_SIZE], LogInfo info[QUERY_LOG_COUNT])
 	char sql[256]  = "";
 	char *sql_format = "SELECT no, time, description FROM operation_log \
 					   WHERE time>='%ld' AND time<='%ld';";
+	char time_str[30] = "";
+	sprintf(time_str, "%s 00:00:00", time);
 	struct tm stm;
-	strptime(time, "%Y-%m-%d %H:%M:%S", &stm);
+	strptime(time_str, "%Y-%m-%d %H:%M:%S", &stm);
 	sprintf(sql, sql_format, mktime(&stm)-24*60*60, mktime(&stm)+24*60*60);
+
 	int ret = sqlite3_get_table(db_instance, sql, &result, &nRow, &nColumn, &pzErrmsg);
 	TRY_SQLITE_ERROR(ret!=SQLITE_OK, "查询日志:", db_instance, return FuncError);
-	// 最多查询20条
-	if (nRow > 20) 
-		nRow = 20;
+	if (nRow > QUERY_LOG_COUNT) 
+		nRow = QUERY_LOG_COUNT;
 
 	int i = 0;
 	for (i=1; i<=nRow; i++)
 	{
-		info[i].empno = atoi(result[i*nColumn + 0]);
-		info[i].time  = atoi(result[i*nColumn + 1]);
-		strcpy(info[i].description, result[i*nColumn + 2]);	
+		time_t t = atoi(result[i*nColumn + 1]);
+		info[i-1].empno = atoi(result[i*nColumn + 0]);
+		strcpy(info[i-1].describe, result[i*nColumn + 2]);	
+		strftime(info[i-1].date, 128, "%Y-%m-%d %H:%M:%S", localtime(&t));
 	}
 
 	return nRow;
-}/*}}}*/
+}
 
 /*
  * function:    createLoginStateInfo
@@ -293,16 +297,21 @@ int queryLogInfo(char time[LOG_TIME_SIZE], LogInfo info[QUERY_LOG_COUNT])
  * @return      0:成功  !0:处理出错
  */
 int createLoginStateInfo(EmployeeInfo *info)
-{/*{{{*/
+{
 	char sql[256] = "";
+	sprintf(sql, "DELETE FROM token WHERE no='%d';", info->empno);
+	sqlite3_exec(db_instance, sql, NULL, NULL, NULL); 
+
+	bzero(sql, sizeof(sql));
 	char *sql_format = "INSERT INTO token(no, login_time, login_status) \
 					   VALUES('%d', '%ld', '%s');";
 	sprintf(sql, sql_format, info->empno, time(NULL), "在线");
+
 	int ret = sqlite3_exec(db_instance, sql, NULL, NULL, NULL);
 	TRY_SQLITE_ERROR(ret!=SQLITE_OK, "创建登录信息:", db_instance, return FuncError);
 
 	return FuncNormal;
-}/*}}}*/
+}
 
 /*
  * function:    deleteLoginStateInfo
@@ -312,15 +321,16 @@ int createLoginStateInfo(EmployeeInfo *info)
  * @return      0:成功  !0:处理出错
  */
 int deleteLoginStateInfo(uint empno)
-{/*{{{*/
+{
 	char sql[256] = "";
 	char *sql_format = "DELETE FROM token WHERE no='%d';";
 	sprintf(sql, sql_format, empno);
+
 	int ret = sqlite3_exec(db_instance, sql, NULL, NULL, NULL);
 	TRY_SQLITE_ERROR(ret!=SQLITE_OK, "删除登录信息:", db_instance, return FuncError);
 
 	return FuncNormal;
-}/*}}}*/
+}
 
 /*
  * function:    deleteLoginStateInfo
@@ -336,9 +346,9 @@ int checkLoginStateInfo(uint empno)
 	int nRow       = 0;
 	int nColumn    = 0;
 	char sql[256]  = "";
-	char *sql_format = "SELECT * FROM token \
-					   WHERE no='%d';";
+	char *sql_format = "SELECT * FROM token  WHERE no='%d';";
 	sprintf(sql, sql_format, empno);
+
 	int ret = sqlite3_get_table(db_instance, sql, &result, &nRow, &nColumn, &pzErrmsg);
 	TRY_SQLITE_ERROR(ret!=SQLITE_OK, "查询登录信息:", db_instance, return FuncError);
 	

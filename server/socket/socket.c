@@ -96,7 +96,8 @@ int receviesMessage(int cfd)
 	// 接收请求头
 	RequestInfo info;
 	int ret = recv(cfd, &info, sizeof(RequestInfo), 0);
-	TRY_ERROR(ret<=0, "recv() error", return FuncException);
+	if (ret<=0) return FuncException;
+	//TRY_ERROR(ret<=0, "recv() error", return FuncException);
 	
 	// 根据类型调用对应业务处理
 	switch(info.type)
