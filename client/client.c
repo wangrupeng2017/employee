@@ -34,7 +34,7 @@ int connectServer(char *ip, int port)
 	
 	int ret = inet_pton(AF_INET, ip, (void *)&server_address.sin_addr.s_addr);
 	TRY_ERROR(ret == -1, "string ip convert", goto error_label);
-
+	
 	ret = connect(fd, (struct sockaddr *)&server_address, sizeof(server_address));
 	TRY_ERROR( ret == -1, "connect service", goto error_label);
 
@@ -62,11 +62,10 @@ int loginBusiness(int fd, LoginModel *login_model, LoginResultModel *result_mode
 {
 	int ret = -1;
 	showLoginMenu();
-	ret = getHomeMenuChoose();
-	
-	getLoginModel(login_model);
-	ret = sendLoginRequest(fd, login_model, result_model);
-
+	if((ret = getHomeMenuChoose())){
+		getLoginModel(login_model);
+		ret = sendLoginRequest(fd, login_model, result_model);
+	}
 	return ret;
 }
 
@@ -104,15 +103,16 @@ int getHomeMenuChoose(void)
 int getLoginModel(LoginModel *model)
 {
 	char word[32] = {0};
-	printf("请输入您的用户名：");
+	
 	fgets(word, sizeof(word), stdin);
-	word[strlen(word) -1] = '\0'; // fgets 自动在最后添加一个 '\n' 
+	memset(word, 0, sizeof(word));
+	printf("请输入您的用户名：");
+	getDataFgets(word, sizeof(word));
 	strncpy(model->name, word, sizeof(model->name) - 1);
 
 	printf("请输入您的密码：");
 	memset(word, 0, sizeof(word));
-	fgets(word, sizeof(word), stdin); 
-	word[strlen(word) -1] = '\0';  // fgets 自动在最后添加一个 '\n'
+	getDataFgets(word, sizeof(word));
 	strncpy(model->pwd, word, sizeof(model->pwd) - 1);
 
 	return 0;
@@ -131,18 +131,21 @@ int getLoginModel(LoginModel *model)
  * @Author     : xuyuanbing
  * @Other      : 
  */
-static int sendLoginRequest(int file_descriptor, LoginModel *model, LoginResultModel *out)
+static int sendLoginRequest(int file_descriptor, LoginModel *model, LoginResultModel *login_result_model)
 {
 	RequestInfo req = {
 		.type = Login,
 		.size = sizeof(LoginModel)
 	};
 	ResponseInfo res = {0};
-	LoginResultModel res_model = {0};
 
 	int ret = FuncException;
-	ret = request(file_descriptor, &req, sizeof(RequestInfo), &model, sizeof(LoginModel),
-			&res, sizeof(ResponseInfo), &res_model, sizeof(LoginModel));
+	ret = request(file_descriptor, &req, sizeof(RequestInfo), model, sizeof(LoginModel),
+			&res, sizeof(ResponseInfo), login_result_model, sizeof(LoginResultModel));
+	if( res.result == Failed ){
+		printf("%s\n", res.message);
+	}
+
 	return ret;
 }
 
@@ -170,22 +173,25 @@ int request(int file_descriptor, void * request_head,
 	// 输入参的基本校验 忽 TODO 
 	int ret = FuncException;
 	// 发送请求头
-	ret = send(file_descriptor, (void *)request_head, request_head_size,0);
+	ret = send(file_descriptor, request_head, request_head_size,0);
 	TRY_PERROR(ret == FuncException, "发送请求头");
 
 	// 发送请求数据
-	ret = send(file_descriptor, (void *)request_data, request_data_size,0);
+	ret = send(file_descriptor, request_data, request_data_size,0);
 	TRY_PERROR(ret == FuncException, "发送请求数据");
 	
 	// 接受反回头
-	ret = recv(file_descriptor, (void *) response_head, response_head_size, 0);
+	ret = recv(file_descriptor, response_head, response_head_size, 0);
 	TRY_PERROR(ret == FuncException, "接收请求头数据");
+	ResponseInfo * response_info = response_head;
 
-	// 接受返回的数据
-	ret = recv(file_descriptor, (void *) response_data, response_data_size, 0);
-	TRY_PERROR(ret == FuncException, "接收请求数据");
+	if(response_info->result == Success){
+		// 接受返回的数据
+		ret = recv(file_descriptor, response_data, response_data_size, 0);
+		TRY_PERROR(ret == FuncException, "接收请求数据");
+	}
 
-	return FuncNormal;
+	return response_info->result;
 }
 
 void getDataFgets(char * data, size_t size)
