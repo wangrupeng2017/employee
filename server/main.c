@@ -42,7 +42,7 @@ int main(int argc, const char *argv[])
 	while(1)
 	{
 		int ret = poll(pollfds, nfds, POLL_TIMEOUT);
-		TRY_ERROR(ret==0, "poll() timeout", continue);
+		//TRY_ERROR(ret==0, "poll() timeout", continue);
 		TRY_PERROR(ret==-1, "poll():", return FuncError);
 
 		int i       = 0;
@@ -87,6 +87,8 @@ int main(int argc, const char *argv[])
 				// 断开客户端连接
 				if (ret<0)
 				{
+					printf("[%d] 客户端已退出\n", sockfd);
+					close(sockfd);
 					nfds = del_pollfd(&pollfds, nfds, pollfds[i]);
 					i -= 1;
 				}

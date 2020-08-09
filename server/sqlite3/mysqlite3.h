@@ -11,15 +11,17 @@
 #define __MYSQLITE3_H__
 
 #include <sqlite3.h>
-
 #include "common_base.h"
+#include "socket_models.h"
 
 #define DB_PATH  "./employee.db"
-#define TRY_SQLITE_ERROR(expr, describe, db, ...)  if (expr) { fprintf(stderr, "%s:%s\n", describe, sqlite3_errmsg(db)); __VA_ARGS__; exit(-1); }
 
-#define CREATE_EMPLOEEY_TABLE "CREATE TABLE if not exists employee (no integer PRIMARY KEY autoincrement, name char, password char, age int, sex char, department char, salary int, role char);"
-#define CREATE_LOGIN_TABLE "CREATE TABLE if not exists token(no integer PRIMARY KEY, login_time int, login_status char);"
-#define CREATE_LOG_TABLE "CREATE TABLE if not exists operation_log(id integer PRIMARY KEY autoincrement, no int, description int, time int);"
+#define CREATE_EMPLOEEY_TABLE "CREATE TABLE if not exists employee(no integer PRIMARY KEY autoincrement, name txt, password txt, department txt, age int, sex int, salary int, role int);"
+#define CREATE_LOGIN_TABLE "CREATE TABLE if not exists token(sockfd integer PRIMARY KEY, no integer, login_time int, login_status txt);"
+#define CREATE_LOG_TABLE "CREATE TABLE if not exists operation_log(id integer PRIMARY KEY autoincrement, no int, description txt, time int);"
+#define CREATE_SIGNIN_TABLE "CREATE TABLE if not exists signin(id integer PRIMARY KEY autoincrement, no int, time int);"
+#define DELETE_ADMIN_DATA "DELETE FROM employee WHERE no=1;"
+#define INSERT_ADMIN_DATA "INSERT INTO employee(no, name, password, department, age, sex, salary, role) VALUES(1, 'admin', 'admin', '行政部门', 1, 1, 1, 2);"
 
 // 员工信息结构体
 typedef struct EmployeeInfo {
@@ -59,14 +61,22 @@ int queryEmployeeInfo(uint empno, char name[EMPLOYEE_NAME_SIZE], EmployeeInfo in
 // 创建日志
 int createLogInfo(LogInfo *info);
 // 查询日志
-int queryLogInfo(char time[LOG_TIME_SIZE], LogInfo info[QUERY_LOG_COUNT]);
+int queryLogInfo(char time[LOG_TIME_SIZE], LogQueryResult info[QUERY_LOG_COUNT]);
+// 记录日志
+void saveLogs(uint empno, char message[50]);
 
 // 创建登录信息
-int createLoginStateInfo(EmployeeInfo *info);
+int createLoginStateInfo(int sockfd, EmployeeInfo *info);
 // 删除登录信息
 int deleteLoginStateInfo(uint empno);
 // 校验登录信息
-int checkLoginStateInfo(uint empno);
+int checkLoginStateInfo(int sockfd);
 
+// 检查是否签到
+int checkSigninInfo(int empno, int *out);
+// 新增签到信息
+int createSigninInfo(int empno);
+// 查询本月签到情况
+int querySigninInfo(int empno, char out[100]);
 
 #endif //__MYSQLITE3_H__

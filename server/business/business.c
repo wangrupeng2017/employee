@@ -9,12 +9,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
 #include "business.h"
 #include "mysqlite3.h"
+
+
+
+
 
 /*
  * function:    loginHandler
@@ -25,7 +30,7 @@
  * @return      0:处理成功 !0:处理出错
  */
 int loginHandler(int sockfd, RequestInfo *info)
-{
+{/*{{{*/
 	LoginModel model   = {0};
 	EmployeeInfo einfo = {0};
 	LoginResultModel result = {0};
@@ -46,7 +51,7 @@ int loginHandler(int sockfd, RequestInfo *info)
 	if (einfo.empno == 0) goto LOGIN_FAILE_LABEL;
 
 	// 创建登录信息
-	ret = createLoginStateInfo(&einfo);
+	ret = createLoginStateInfo(sockfd, &einfo);
 	if (ret < 0) return FuncError;
 
 	// 返回登录成功信息
@@ -55,6 +60,7 @@ int loginHandler(int sockfd, RequestInfo *info)
 	strcpy(res.message, "登录成功");	
 	
 	result.empno = einfo.empno;
+	result.role  = einfo.role;
 	strcpy(result.name, einfo.name);
 	return responseMessage(sockfd, &res, &result);
 
@@ -62,7 +68,7 @@ LOGIN_FAILE_LABEL:
 	strcpy(res.message, "用户名或密码错误");	
 	ret = responseMessage(sockfd, &res, NULL); 
 	return ret;
-}
+}/*}}}*/
 
 /*
  * function:    quitHandler
@@ -126,6 +132,7 @@ int employeeQueryHandler(int sockfd, RequestInfo *info)
 	// 查询员工信息
 	ret = queryEmployeeInfo(model.empno, model.name, result);
 	if (ret < 0) goto SERVER_ERR_LABEL;
+
 
 	// 返回查询成功信息
 	res.result = Success;
@@ -207,6 +214,7 @@ int employeeAddHandler(int sockfd, RequestInfo *info)
 	int ret = recv(sockfd, &model, sizeof(model), 0);
 	TRY_ERROR(ret<=0, "recv() error", return FuncError);
 
+	employee.role   = 1;
 	employee.sex    = model.sex;
 	employee.age    = model.age;
 	employee.salary = model.salary;
@@ -276,7 +284,7 @@ SERVER_ERR_LABEL:
  * @return      0:处理成功 !0:处理出错
  */
 int logsQueryHandler(int sockfd, RequestInfo *info)
-{/*{{{*/
+{
 	LogQueryModel model = {0};
 	ResponseInfo res = {
 		.type    = info->type,
@@ -284,7 +292,7 @@ int logsQueryHandler(int sockfd, RequestInfo *info)
 		.result  = Failed,
 		.message = ""
 	};
-	LogInfo result[QUERY_LOG_COUNT] = {0};
+	LogQueryResult result[QUERY_LOG_COUNT] = {0};
 
 	// 接收查询日志消息
 	int ret = recv(sockfd, &model, sizeof(model), 0);
@@ -295,7 +303,7 @@ int logsQueryHandler(int sockfd, RequestInfo *info)
 
 	// 返回查询成功消息
 	res.result = Success;
-	res.size   = sizeof(LogInfo) * ret;
+	res.size   = sizeof(LogQueryResult) * ret;
 	strcpy(res.message, "查询成功");
 	return responseMessage(sockfd, &res, result);
 
@@ -304,6 +312,85 @@ SERVER_ERR_LABEL:
 	// 返回服务错误
 	strcpy(res.message, "服务错误");	
 	return responseMessage(sockfd, &res, NULL); 
-}/*}}}*/
+}
 
+/*
+ * function:    signInHandler
+ * description: 员工签到处理函数
+ * @param [ in] 
+ * 	 sockfd   : 客户端sockfd
+ * 	 info     : 请求头信息
+ * @return      0:处理成功 !0:处理出错
+ */
+int signInHandler(int sockfd, RequestInfo *info)
+{
+	ResponseInfo res = {
+		.type    = info->type,
+		.size    = 0,
+		.result  = Failed,
+		.message = ""
+	};
+
+	// 从登录信息取出员工号
+	int empno = checkLoginStateInfo(sockfd);
+	if (empno < 0) return FuncError;
+	
+	// 查询签到信息
+	int signin_status;
+	int ret = checkSigninInfo(empno, &signin_status);
+	if (ret < 0) return FuncError;
+	if (signin_status) goto Already_SignIn_Label;
+	
+	// 新增签到信息
+	ret = createSigninInfo(empno);
+	if (ret < 0) goto SERVER_ERR_LABEL;
+	
+	// 返回签到成功结果
+	res.result = Success;
+	strcpy(res.message, "签到成功");
+	return responseMessage(sockfd, &res, NULL); 
+
+Already_SignIn_Label:
+	strcpy(res.message, "您已签到，无法重复签到");
+	return responseMessage(sockfd, &res, NULL); 
+SERVER_ERR_LABEL:
+	strcpy(res.message, "服务错误");	
+	return responseMessage(sockfd, &res, NULL); 
+
+}
+
+/*
+ * function:    signInInfoHandler
+ * description: 查询签到信息处理函数
+ * @param [ in] 
+ * 	 sockfd   : 客户端sockfd
+ * 	 info     : 请求头信息
+ * @return      0:处理成功 !0:处理出错
+ */
+int signInInfoHandler(int sockfd, RequestInfo *info)
+{
+	ResponseInfo res = {
+		.type    = info->type,
+		.size    = 0,
+		.result  = Failed,
+		.message = ""
+	};
+	
+	// 从登录信息取出员工号
+	int empno = checkLoginStateInfo(sockfd);
+	if (empno < 0) return FuncError;
+
+	char message[100] = "";
+	int ret = querySigninInfo(empno, message);
+	if (ret < 0) goto SERVER_ERR_LABEL;
+
+	// 返回签到成功结果
+	res.result = Success;
+	strcpy(res.message, message);
+	return responseMessage(sockfd, &res, NULL); 
+
+SERVER_ERR_LABEL:
+	strcpy(res.message, "服务错误");	
+	return responseMessage(sockfd, &res, NULL); 
+}
 

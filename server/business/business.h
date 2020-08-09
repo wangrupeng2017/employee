@@ -27,6 +27,10 @@ int employeeAddHandler(int sockfd, RequestInfo *info);
 int employeeDeleteHandler(int sockfd, RequestInfo *info);
 // 日志查询请求处理函数
 int logsQueryHandler(int sockfd, RequestInfo *info);
+// 员工签到处理函数
+int signInHandler(int sockfd, RequestInfo *info);
+// 查询签到信息处理函数
+int signInInfoHandler(int sockfd, RequestInfo *info);
 
 
 #endif //__BUSINESS_H__
