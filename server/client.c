@@ -35,7 +35,7 @@ int main(int argc, const char *argv[])
     ret = connect(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr));
     TRY_ERROR(ret==-1, "connect", goto error_label);
 
-#define REQ_TYPE 5
+#define REQ_TYPE 2
 #if REQ_TYPE == 1
 // 登录
 	RequestInfo req = {

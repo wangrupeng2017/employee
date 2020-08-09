@@ -149,6 +149,16 @@ int receviesMessage(int cfd)
 			saveLogs(empno, "日志查询");
 			ret = logsQueryHandler(cfd, &info);		
 			break;
+		case SignIn:		
+			printf("[%d]:员工签到\n", cfd);
+			saveLogs(empno, "员工签到");
+			ret = logsQueryHandler(cfd, &info);		
+			break;
+		case SignInInfo:		
+			printf("[%d]:查询签到信息\n", cfd);
+			saveLogs(empno, "查询签到信息");
+			ret = logsQueryHandler(cfd, &info);		
+			break;
 	}
 
 	return ret;

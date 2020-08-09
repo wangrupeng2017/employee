@@ -34,6 +34,8 @@ typedef enum RequestType {
 	EmployeeAdd    = 5,
 	EmployeeDelete = 6,
 	LogsQuery      = 7,
+	SignIn         = 8,
+	SignInInfo     = 9,
 } RequestType;
 
 // 响应结果
