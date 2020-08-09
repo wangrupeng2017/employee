@@ -26,6 +26,28 @@
 	printf("************************************************************\n");
 }
 
+// 解析菜单输入
+void gotoAdminChoose(int userChoose)
+{
+	switch(userChoose){
+	case 1:
+		break;
+	case 2:
+
+		break;
+	case 3:
+		break;
+	case 4:
+		break;
+	case 5:
+		break;
+	case 0:
+		break;
+	default :
+		break;
+	}
+}
+
 /*
  * description : 接收菜单输入
  * function    : 

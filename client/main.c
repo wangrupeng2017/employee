@@ -20,16 +20,23 @@ int main(int argc, const char *argv[])
 	int fd;
 
 	fd = connectServer(SERVER_IP, SERVER_PORT);
-	printf("main connect failed fd = %d\n", fd);
-	if( fd < 0 ){
-		exit(1);
+	TRY_ERROR(fd < 0,"连接服务器失败");
+
+	LoginResultModel login_result = {0};
+	LoginModel login_model = {0};
+	ret = loginBusiness(fd, &login_model, &login_result);
+	TRY_ERROR(ret, "登陆失败", goto error_label1);
+	if(login_result.role == EmployeeRole){
+		// 普通用户的操作
+		doEmployeeBusiness(
+	}else{
+		// 管理员的操作
 	}
-	ret = loginBusiness(fd);
-	printf(" login_business ret = %d\n", ret);
-#else
-	LoginModel model;
-	getLoginModel(&model);
+
+	return FuncNormal;
 
 #endif
-	return 0;
+error_label1:
+	close(fd);
+	return FuncException;
 }
