@@ -14,6 +14,7 @@
 #include <arpa/inet.h>
 
 #include "socket.h"
+#include "mysqlite3.h"
 #include "business.h"
 
 // 服务器端文件描述符
@@ -27,7 +28,7 @@ static int server_fd = -1;
  * @return      服务器端socketfd
  */
 int createServer(uint port)
-{
+{/*{{{*/
 	// 创建socket套接字
     int sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	TRY_ERROR(sockfd==-1, "socket() error", return FuncError);
@@ -49,7 +50,7 @@ int createServer(uint port)
 	
 	server_fd = sockfd;
 	return sockfd;
-}
+}/*}}}*/
 
 /*
  * function:    closeServer
@@ -57,10 +58,10 @@ int createServer(uint port)
  * @return      0
  */
 int closeServer()
-{
+{/*{{{*/
 	close(server_fd);
 	return FuncNormal;
-}
+}/*}}}*/
 
 /*
  * function:    closeServer
@@ -96,18 +97,58 @@ int receviesMessage(int cfd)
 	// 接收请求头
 	RequestInfo info;
 	int ret = recv(cfd, &info, sizeof(RequestInfo), 0);
-	TRY_ERROR(ret<=0, "recv() error", return FuncException);
+	if (ret<=0) return FuncException;
+	//TRY_ERROR(ret<=0, "recv() error", return FuncException);
+	
+	// 校验登录信息
+	int empno = -1;
+	if (info.type != Login)
+	{
+		empno = checkLoginStateInfo(cfd);
+		if (empno<0) 
+		{
+			printf("[%d]:非法访问, 请登录后重试\n", cfd);
+			return FuncException;
+		}
+	}
 	
 	// 根据类型调用对应业务处理
 	switch(info.type)
 	{
-		case Login: 		ret = loginHandler(cfd, &info); 		break;
-		case Quit:	 		ret = quitHandler(cfd, &info);			break;
-		case EmployeeQuery:	ret = employeeQueryHandler(cfd, &info);	break;
-		case EmployeeModify:ret = employeeModifyHandler(cfd, &info);break;
-		case EmployeeAdd:	ret = employeeAddHandler(cfd, &info);	break;
-		case EmployeeDelete:ret = employeeDeleteHandler(cfd, &info);break;
-		case LogsQuery:		ret = logsQueryHandler(cfd, &info);		break;
+		case Login: 		
+			printf("[%d]:登录系统\n", cfd);
+			ret = loginHandler(cfd, &info); 		
+			break;
+		case Quit:	 		
+			printf("[%d]:退出系统\n", cfd);
+			saveLogs(empno, "退出系统");
+			ret = quitHandler(cfd, &info);			
+			break;
+		case EmployeeQuery:	
+			printf("[%d]:查询员工信息\n", cfd);
+			saveLogs(empno, "查询员工信息");
+			ret = employeeQueryHandler(cfd, &info);	
+			break;
+		case EmployeeModify:
+			printf("[%d]:修改员工信息\n", cfd);
+			saveLogs(empno, "修改信息");
+			ret = employeeModifyHandler(cfd, &info);
+			break;
+		case EmployeeAdd:	
+			printf("[%d]:创建新员工信息\n", cfd);
+			saveLogs(empno, "创建新员工");	
+			ret = employeeAddHandler(cfd, &info);	
+			break;
+		case EmployeeDelete:
+			printf("[%d]:删除员工信息\n", cfd);
+			saveLogs(empno, "删除员工");
+			ret = employeeDeleteHandler(cfd, &info);
+			break;
+		case LogsQuery:		
+			printf("[%d]:查询操作日志\n", cfd);
+			saveLogs(empno, "日志查询");
+			ret = logsQueryHandler(cfd, &info);		
+			break;
 	}
 
 	return ret;

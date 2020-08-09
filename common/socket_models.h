@@ -13,6 +13,12 @@
 #include "common_base.h"
 
 
+// 角色类型
+typedef enum RoleType {
+	EmployeeRole = 1,
+	AdminRole    = 2,
+} RoleType;
+
 // 性别类型
 typedef enum SexType {
 	Male   = 1,
@@ -31,33 +37,34 @@ typedef enum RequestType {
 } RequestType;
 
 // 响应结果
-typedef enum ResultStatus {/*{{{*/
+typedef enum ResultStatus {
 	Success = 0,
 	Failed  = 1,
-} ResultStatus;/*}}}*/
+} ResultStatus;
 
 // 请求头信息
-typedef struct RequestInfo {/*{{{*/
+typedef struct RequestInfo {
 	RequestType type;
 	uint        size;
-} RequestInfo;/*}}}*/
+} RequestInfo;
 // 响应头信息
-typedef struct ResponseInfo {/*{{{*/
+typedef struct ResponseInfo {
 	RequestType  type;
 	uint         size;
 	ResultStatus result;
 	char         message[RES_MESSAGE_SIZE];
-} ResponseInfo;/*}}}*/
+} ResponseInfo;
 
 // 登录系统请求/响应结构
-typedef struct LoginModel {/*{{{*/
+typedef struct LoginModel {
 	char name[EMPLOYEE_NAME_SIZE];
 	char pwd[EMPLOYEE_PWD_SIZE];
-} LoginModel;/*}}}*/
-typedef struct LoginResult {/*{{{*/
+} LoginModel;
+typedef struct LoginResult {
 	char name[EMPLOYEE_NAME_SIZE];
 	uint empno;
-} LoginResultModel;/*}}}*/
+	uchar role;
+} LoginResultModel;
 
 // 退出系统请求/响应结构
 typedef struct QuitModel {/*{{{*/
@@ -68,8 +75,9 @@ typedef struct QuitModel {/*{{{*/
 typedef struct EmployeeQueryModel {/*{{{*/
 	char name[EMPLOYEE_NAME_SIZE];
 	uint empno;
+	uint query_empno;
 } EmployeeQueryModel;/*}}}*/
-typedef struct EmployeeQueryResult {/*{{{*/
+typedef struct EmployeeQueryResult {
 	uint  empno;
 	char  name[EMPLOYEE_NAME_SIZE];
 	char  pwd[EMPLOYEE_PWD_SIZE];
@@ -77,10 +85,11 @@ typedef struct EmployeeQueryResult {/*{{{*/
 	uchar age;
 	uint  salary;
 	char  department[EMPLOYEE_DEPARTMENT_SIZE];
-} EmployeeQueryResult;/*}}}*/
+	uchar role;
+} EmployeeQueryResult;
 
 // 修改员工请求/响应结构
-typedef struct EmployeeModifyModel {/*{{{*/
+typedef struct EmployeeModifyModel {
 	uint  empno;
 	char  name[EMPLOYEE_NAME_SIZE];
 	char  pwd[EMPLOYEE_PWD_SIZE];
@@ -88,10 +97,10 @@ typedef struct EmployeeModifyModel {/*{{{*/
 	uchar age;
 	uint  salary;
 	char  department[EMPLOYEE_NAME_SIZE];
-} EmployeeModifyModel; /*}}}*/
+} EmployeeModifyModel; 
 
 // 创建新员工请求/响应结构
-typedef struct EmployeeCreateModel {/*{{{*/
+typedef struct EmpldoyeeCreateModel {/*{{{*/
 	char  name[EMPLOYEE_NAME_SIZE];
 	char  pwd[EMPLOYEE_PWD_SIZE];
 	uchar sex;
@@ -115,7 +124,7 @@ typedef struct LogQueryModel {
 	char date[LOG_TIME_SIZE];
 } LogQueryModel;
 typedef struct LogQueryResult {
-	char name[EMPLOYEE_NAME_SIZE];
+	uint empno;
 	char describe[LOG_DESCRIBE_SIZE];
 	char date[LOG_TIME_SIZE];
 } LogQueryResult;
