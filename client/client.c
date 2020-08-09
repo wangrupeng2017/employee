@@ -68,11 +68,36 @@ void showLoginMenu(void)
 	printf("***************************************************\n");
 }
 
-// 打印登陆菜单
-void showNormalUserMenu(void)
+/*
+ * description : 打印普通用户菜单
+ * function    : 
+ * @param [ in]: 
+ * @param [out]: 
+ * @return     : 
+ * @Author     : xuyuanbing
+ * @Other      : 
+ */
+void showEmployeeMenu(void)
 {
 	printf("********************  请选择所需的服务  ********************\n");
-	printf("**************  1:信息查询  2:信息修改 3:退出 **************\n");
+	printf("**************  1:信息查询  2:信息修改 0:退出 **************\n");
+	printf("************************************************************\n");
+}
+
+/*
+ * description : 打印管理员菜单
+ * function    : 
+ * @param [ in]: 
+ * @param [out]: 
+ * @return     : 
+ * @Author     : xuyuanbing
+ * @Other      : 
+ */
+void showAdminMenu(void)
+{
+	printf("********************  请选择所需的服务  ********************\n");
+	printf("**************  1:添加用户  2:删除用户 3:信息查询 **************\n");
+	printf("**************  4:修改用户  5:查询操作 0:退出 **************\n");
 	printf("************************************************************\n");
 }
 
@@ -94,14 +119,27 @@ int getHomeMenuChoose(void)
 }
 
 // 解析菜单输入
-void gotoChoose(int userChoose)
+void gotoChoose(int userChoose, unsigned char is_admin)
 {
 	switch(userChoose){
 	case 1:
+		if(is_admin){
+			// TODO
+		}
 		break;
 	case 2:
+		if(is_admin){
+			// TODO
+		}
+
 		break;
 	case 3:
+		break;
+	case 4:
+		break;
+	case 5:
+		break;
+	case 0:
 		break;
 	default :
 		break;
@@ -110,17 +148,21 @@ void gotoChoose(int userChoose)
 
 
 // 登录业务:
-int loginBusiness(int fd)
+int loginBusiness(int fd, LoginResultModel *result_model)
 {
 	int ret = 1;
 	LoginModel login_model;
 	if( Failed == getLoginModel(&login_model)){
 		return Failed;
 	}
-	LoginResultModel result_model;
 	if(Failed == sendLoginRequest(fd, &login_model, &result_model)){
 		return Failed;
 	}
+
+#if 0
+	printf("login result modle, result_model.token= %s result_model.name= %s result_model.empno = %d\n",
+			result_model.token, result_model.name, result_model.empno);
+#endif
 }
 
 
@@ -175,15 +217,13 @@ static int sendLoginRequest(int fd, LoginModel *model, LoginResultModel *out)
 		ret = send(fd, (void *)model, sizeof(LoginModel), 0);
 	} while (ret < 0 && EINTR == errno);
 
-#if 0
 	do
 	{
-		ret = recv(fd, model, sizeof(model), 0);
+		ret = recv(fd, (void *) out, sizeof(LoginResultModel), 0);
 	} while (ret < 0 && EINTR == errno);
 	if( ret < 0 ){
 		perror(" send login model");
 	}
-#endif
 
 	return ret < 0 ? Failed: Success;
 }
