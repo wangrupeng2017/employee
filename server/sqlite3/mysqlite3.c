@@ -26,7 +26,7 @@ static sqlite3* db_instance = NULL;
  * @return      0:处理成功 !0:处理出错
  */
 int initSQL(sqlite3 **out)
-{/*{{{*/
+{
 	// 打开数据库
 	int ret = sqlite3_open(DB_PATH, &db_instance);
     TRY_SQLITE_ERROR(ret!=SQLITE_OK, "打开数据库:", db_instance, return FuncError);
@@ -39,9 +39,14 @@ int initSQL(sqlite3 **out)
 	ret = sqlite3_exec(db_instance, CREATE_LOG_TABLE, NULL, NULL, NULL);
 	TRY_SQLITE_ERROR(ret!=SQLITE_OK, "创建表格:", db_instance, return FuncError);
 
+	// 添加默认管理员
+	sqlite3_exec(db_instance, DELETE_ADMIN_DATA, NULL, NULL, NULL);
+	ret = sqlite3_exec(db_instance, INSERT_ADMIN_DATA, NULL, NULL, NULL);
+	TRY_SQLITE_ERROR(ret!=SQLITE_OK, "添加管理员:", db_instance, return FuncError);
+
 	*out = db_instance;
 	return FuncNormal;
-}/*}}}*/
+}
 /*
  * function:    closeSQL 
  * description: 关闭sqlite对象
@@ -80,7 +85,7 @@ int checkEmployeeInfo(char name[EMPLOYEE_NAME_SIZE], char pwd[EMPLOYEE_PWD_SIZE]
 					    FROM employee \
 					    WHERE name='%s' \
 					    AND password='%s';";
-	sprintf(sql, sql_format, name, pwd); printf("%s\n", sql);
+	sprintf(sql, sql_format, name, pwd); 
 
 	int ret = sqlite3_get_table(db_instance, sql, &result, &nRow, &nColumn, &pzErrmsg);
 	TRY_SQLITE_ERROR(ret!=SQLITE_OK, "查询员工:", db_instance, return FuncError);
@@ -290,22 +295,40 @@ int queryLogInfo(char time[LOG_TIME_SIZE], LogQueryResult info[QUERY_LOG_COUNT])
 }
 
 /*
+ * function:    saveLogs
+ * description: 记录日志
+ * @param [ in] 
+ * 	 empno    : 操作者员工号
+ * 	 message  : 日志内容
+ */
+void saveLogs(uint empno, char message[50])
+{/*{{{*/
+	LogInfo info = {0};
+	info.empno = empno;
+	info.time  = time(NULL);
+	strcpy(info.description, message);
+
+	createLogInfo(&info);
+}/*}}}*/
+
+/*
  * function:    createLoginStateInfo
  * description: 创建登录信息
  * @param [ in] 
+ * 	 sockfd   : 客户端文件描述符
  * 	 info     : 员工信息
  * @return      0:成功  !0:处理出错
  */
-int createLoginStateInfo(EmployeeInfo *info)
+int createLoginStateInfo(int sockfd, EmployeeInfo *info)
 {
 	char sql[256] = "";
-	sprintf(sql, "DELETE FROM token WHERE no='%d';", info->empno);
+	sprintf(sql, "DELETE FROM token WHERE sockfd='%d';", sockfd);
 	sqlite3_exec(db_instance, sql, NULL, NULL, NULL); 
 
 	bzero(sql, sizeof(sql));
-	char *sql_format = "INSERT INTO token(no, login_time, login_status) \
-					   VALUES('%d', '%ld', '%s');";
-	sprintf(sql, sql_format, info->empno, time(NULL), "在线");
+	char *sql_format = "INSERT INTO token(sockfd, no, login_time, login_status) \
+					   VALUES('%d', '%d', '%ld', '%s');";
+	sprintf(sql, sql_format, sockfd, info->empno, time(NULL), "在线");
 
 	int ret = sqlite3_exec(db_instance, sql, NULL, NULL, NULL);
 	TRY_SQLITE_ERROR(ret!=SQLITE_OK, "创建登录信息:", db_instance, return FuncError);
@@ -336,21 +359,21 @@ int deleteLoginStateInfo(uint empno)
  * function:    deleteLoginStateInfo
  * description: 校验登录信息
  * @param [ in] 
- * 	 empno    : 员工号
- * @return      0:在线  !0:不在线
+ * 	 sockfd   : 客户端文件描述符
+ * @return      >0:员工号, <0:不在线/未登录
  */
-int checkLoginStateInfo(uint empno)
+int checkLoginStateInfo(int sockfd)
 {
 	char **result  = NULL;
 	char *pzErrmsg = NULL;
 	int nRow       = 0;
 	int nColumn    = 0;
 	char sql[256]  = "";
-	char *sql_format = "SELECT * FROM token  WHERE no='%d';";
-	sprintf(sql, sql_format, empno);
+	char *sql_format = "SELECT no FROM token  WHERE sockfd='%d';";
+	sprintf(sql, sql_format, sockfd);
 
 	int ret = sqlite3_get_table(db_instance, sql, &result, &nRow, &nColumn, &pzErrmsg);
 	TRY_SQLITE_ERROR(ret!=SQLITE_OK, "查询登录信息:", db_instance, return FuncError);
 	
-	return nRow>0 ? 0 : -1;
+	return nRow>0 ? atoi(result[1*nColumn + 0]) : -1;
 }

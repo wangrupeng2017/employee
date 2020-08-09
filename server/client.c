@@ -35,7 +35,7 @@ int main(int argc, const char *argv[])
     ret = connect(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr));
     TRY_ERROR(ret==-1, "connect", goto error_label);
 
-#define REQ_TYPE 1
+#define REQ_TYPE 5
 #if REQ_TYPE == 1
 // 登录
 	RequestInfo req = {
@@ -43,8 +43,8 @@ int main(int argc, const char *argv[])
 		.size = sizeof(LoginModel)
 	};
 	LoginModel model = {
-		.name = "张三",
-		.pwd  = "123"
+		.name = "admin",
+		.pwd  = "admin"
 	};
 	ResponseInfo res = {0};
 	LoginResultModel res_model = {0};

@@ -87,6 +87,8 @@ int main(int argc, const char *argv[])
 				// 断开客户端连接
 				if (ret<0)
 				{
+					printf("[%d] 客户端已退出\n", sockfd);
+					close(sockfd);
 					nfds = del_pollfd(&pollfds, nfds, pollfds[i]);
 					i -= 1;
 				}

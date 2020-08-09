@@ -18,22 +18,7 @@
 #include "mysqlite3.h"
 
 
-/*
- * function:    saveLogs
- * description: 记录日志
- * @param [ in] 
- * 	 empno    : 操作者员工号
- * 	 message  : 日志内容
- */
-void saveLogs(uint empno, char message[50])
-{
-	LogInfo info = {0};
-	info.empno = empno;
-	info.time  = time(NULL);
-	strcpy(info.description, message);
 
-	createLogInfo(&info);
-}
 
 
 /*
@@ -45,7 +30,7 @@ void saveLogs(uint empno, char message[50])
  * @return      0:处理成功 !0:处理出错
  */
 int loginHandler(int sockfd, RequestInfo *info)
-{/*{{{*/
+{
 	LoginModel model   = {0};
 	EmployeeInfo einfo = {0};
 	LoginResultModel result = {0};
@@ -66,11 +51,8 @@ int loginHandler(int sockfd, RequestInfo *info)
 	if (einfo.empno == 0) goto LOGIN_FAILE_LABEL;
 
 	// 创建登录信息
-	ret = createLoginStateInfo(&einfo);
+	ret = createLoginStateInfo(sockfd, &einfo);
 	if (ret < 0) return FuncError;
-
-	// 记录操作日志
-	saveLogs(einfo.empno, "登录系统");
 
 	// 返回登录成功信息
 	res.size   = sizeof(result);
@@ -86,7 +68,7 @@ LOGIN_FAILE_LABEL:
 	strcpy(res.message, "用户名或密码错误");	
 	ret = responseMessage(sockfd, &res, NULL); 
 	return ret;
-}/*}}}*/
+}
 
 /*
  * function:    quitHandler
@@ -113,9 +95,6 @@ int quitHandler(int sockfd, RequestInfo *info)
 	// 删除登录信息
 	ret = deleteLoginStateInfo(model.empno);
 	if (ret < 0) goto SERVER_ERR_LABEL;
-
-	// 记录日志
-	saveLogs(model.empno, "退出系统");
 
 	// 返回登录成功信息
 	res.result = Success;
@@ -154,8 +133,6 @@ int employeeQueryHandler(int sockfd, RequestInfo *info)
 	ret = queryEmployeeInfo(model.empno, model.name, result);
 	if (ret < 0) goto SERVER_ERR_LABEL;
 
-	// 记录日志
-	saveLogs(model.empno, "查询员工信息");
 
 	// 返回查询成功信息
 	res.result = Success;
@@ -202,9 +179,6 @@ int employeeModifyHandler(int sockfd, RequestInfo *info)
 	ret = modifyEmployeeInfo(&employee);
 	if (ret < 0) goto SERVER_ERR_LABEL;
 
-	// 记录日志
-	saveLogs(model.empno, "修改信息");
-
 	// 返回查询成功信息
 	res.result = Success;
 	strcpy(res.message, "修改成功");	
@@ -224,7 +198,7 @@ SERVER_ERR_LABEL:
  * @return      0:处理成功 !0:处理出错
  */
 int employeeAddHandler(int sockfd, RequestInfo *info)
-{/*{{{*/
+{
 	EmployeeCreateModel model = {0};
 	ResponseInfo res = {
 		.type    = info->type,
@@ -240,6 +214,7 @@ int employeeAddHandler(int sockfd, RequestInfo *info)
 	int ret = recv(sockfd, &model, sizeof(model), 0);
 	TRY_ERROR(ret<=0, "recv() error", return FuncError);
 
+	employee.role   = 1;
 	employee.sex    = model.sex;
 	employee.age    = model.age;
 	employee.salary = model.salary;
@@ -248,9 +223,6 @@ int employeeAddHandler(int sockfd, RequestInfo *info)
 	strcpy(employee.department, model.department);
 	ret = createEmployeeInfo(&employee, &empno);
 	if (ret < 0) goto SERVER_ERR_LABEL;
-
-	// 记录日志
-	saveLogs(empno, "创建新员工");	
 
 	// 返回创建成功消息
 	res.result = Success;
@@ -265,7 +237,7 @@ int employeeAddHandler(int sockfd, RequestInfo *info)
 SERVER_ERR_LABEL:
 	strcpy(res.message, "服务错误");	
 	return responseMessage(sockfd, &res, NULL); 
-}/*}}}*/
+}
 
 /*
  * function:    employeeDeleteHandler
@@ -291,9 +263,6 @@ int employeeDeleteHandler(int sockfd, RequestInfo *info)
 
 	ret = deleteEmployeeInfo(model.empno);
 	if (ret < 0) goto SERVER_ERR_LABEL;
-
-	// 记录日志
-	saveLogs(model.empno, "删除员工");
 
 	// 返回创建成功消息
 	res.result = Success;
