@@ -1,5 +1,5 @@
 
-#include "client.h"
+#include "employee.h"
 #include <stdlib.h>
 #define SERVER_IP "192.168.1.103"
 #define SERVER_PORT 6666
@@ -15,7 +15,7 @@
  */
 int main(int argc, const char *argv[])
 {
-#if 1
+
 	int ret = -1;
 	int fd;
 
@@ -24,18 +24,22 @@ int main(int argc, const char *argv[])
 
 	LoginResultModel login_result = {0};
 	LoginModel login_model = {0};
-	ret = loginBusiness(fd, &login_model, &login_result);
-	TRY_ERROR(ret, "登陆失败", goto error_label1);
-	if(login_result.role == EmployeeRole){
-		// 普通用户的操作
-		doEmployeeBusiness(
-	}else{
-		// 管理员的操作
-	}
-
+	do{
+		ret = loginBusiness(fd, &login_model, &login_result);
+		TRY_ERROR(ret, "登陆失败", goto error_label1);
+		if(login_result.role == EmployeeRole){
+			// 普通用户的操作
+			doEmployeeBusiness(fd, &login_model);
+		}else{
+			// 管理员的操作
+		}
+		bzero(&login_model, sizeof(LoginModel));
+		bzero(&login_result, sizeof(LoginResultModel));
+	} while (ret);
+	
+	close(fd);
 	return FuncNormal;
 
-#endif
 error_label1:
 	close(fd);
 	return FuncException;
