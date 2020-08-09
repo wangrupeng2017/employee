@@ -26,7 +26,6 @@ int main(int argc, const char *argv[])
 	LoginModel login_model = {0};
 	do{
 		ret = loginBusiness(fd, &login_model, &login_result);
-		printf("%s==%s==%d\n", __FILE__, __func__, __LINE__);
 		if(login_result.role == EmployeeRole){
 			// 普通用户的操作
 			doEmployeeBusiness(fd, &login_result);

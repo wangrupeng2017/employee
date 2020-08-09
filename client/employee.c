@@ -21,10 +21,12 @@
 int doEmployeeBusiness(int file_descriptor, LoginResultModel * login_model)
 {
 	int ret = 0; //在在菜单向循环，非0 则返回到登陆页面 
+	int choose = 0;
 	do
 	{
 		showEmployeeMenu();
-		ret = gotoEmployeeChoose(getHomeMenuChoose(), file_descriptor, login_model);
+		choose = getHomeMenuChoose();
+		ret = gotoEmployeeChoose(file_descriptor, choose, login_model);
 	} while (ret);
 
 	return ret;
