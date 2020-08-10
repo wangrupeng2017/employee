@@ -10,6 +10,9 @@
 #include <errno.h>
 #include "../common/socket_models.h"
 
+#define YES "yes"
+
+
 /*
  * Description 		: 连接socket服务器
  * function 		:   connectServer 
@@ -96,5 +99,34 @@ int request(int file_descriptor, void * request_head,
 		size_t response_head_size, void * response_data, size_t response_data_size);
 
 void getDataFgets(char * data, size_t size);
+
+/*
+ * description : 普通员工退出业务
+ * function    : 
+ * @param [ in]: 
+ * 		int file_descriptor 
+ * 		LoginModel *login_model
+ * @param [out]: 
+ * @return     : 返回值: 0:成功 !0:出错
+ * @Author     : xuyuanbing
+ * @Other      : 
+ */
+int employeeQuitBusiness(int file_descriptor, LoginResultModel *login_model);
+
+
+/*
+ * description : 退出请求信息, 发送退出请求
+ * function    : 
+ * @param [ in]: 
+ * 		int file_descriptor 
+ * 		QuitModel *quit_model 
+ * @param [out]: 
+ * 		LoginResultModel *login_result
+ * @return     : 返回值: 0:成功 !0:出错
+ * @Author     : xuyuanbing
+ * @Other      : 
+ */
+int sendQuitRequest(int file_descriptor, QuitModel *quit_model, LoginResultModel *login_result);
+
 
 #endif // __CLIENT_H__

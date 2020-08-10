@@ -200,3 +200,60 @@ void getDataFgets(char * data, size_t size)
 		data[strlen(data) -1] = '\0'; // fgets 自动在最后添加一个 '\n'
 	}
 }
+
+/*
+ * description : 普通员工退出业务
+ * function    : 
+ * @param [ in]: 
+ * 		int file_descriptor 
+ * 		LoginModel *login_model
+ * @param [out]: 
+ * @return     : 返回值: 0:成功 !0:出错
+ * @Author     : xuyuanbing
+ * @Other      : 
+ */
+int employeeQuitBusiness(int file_descriptor, LoginResultModel *login_model)
+{
+	printf("您如果确认退出请输入(yes):");
+	char temp [12] = {0};
+	fgets(temp, sizeof(temp), stdin);
+	// 用户不退去了
+	if(strncasecmp(temp, YES, strlen(YES))){
+		return FuncException;
+	}
+
+	QuitModel quit_model = {0};
+	quit_model.empno = login_model->empno;
+	LoginResultModel login_result = {0};
+	int ret = sendQuitRequest(file_descriptor, &quit_model, &login_result);
+
+	return ret;
+}
+
+
+/*
+ * description : 退出请求信息, 发送退出请求
+ * function    : 
+ * @param [ in]: 
+ * 		int file_descriptor 
+ * 		QuitModel *quit_model 
+ * @param [out]: 
+ * 		LoginResultModel *login_result
+ * @return     : 返回值: 0:成功 !0:出错
+ * @Author     : xuyuanbing
+ * @Other      : 
+ */
+int sendQuitRequest(int file_descriptor, QuitModel *quit_model, LoginResultModel *login_result)
+{
+	RequestInfo req = {
+		.type = Quit,
+		.size = sizeof(QuitModel)
+	};
+	ResponseInfo res = {0};
+	int ret = request(file_descriptor, &req, sizeof(req), quit_model, sizeof(QuitModel), &res, sizeof(res),
+			login_result, sizeof(login_result));
+	return ret;
+}
+
+
+

@@ -35,7 +35,7 @@ int doAdminBusiness(int file_descriptor, LoginResultModel * login_model)
  * description : 打印管理员菜单
  * function    : 
  * @param [ in]: 
- * @param [out]: 
+ * @param [out]:
  * @return     : 
  * @Author     : xuyuanbing
  * @Other      : 
@@ -52,7 +52,6 @@ int doAdminBusiness(int file_descriptor, LoginResultModel * login_model)
 int gotoAdminChoose(int file_descriptor, int userChoose, LoginResultModel * login_model)
 {
 	int ret = -1;
-
 	switch(userChoose){
 	case 1:
 		adminAddBusiness(file_descriptor, login_model);
@@ -68,6 +67,7 @@ int gotoAdminChoose(int file_descriptor, int userChoose, LoginResultModel * logi
 	case 5:
 		break;
 	case 0:
+		ret = employeeQuitBusiness(file_descriptor, login_model);
 		break;
 	default :
 		break;
@@ -90,6 +90,7 @@ int getAdminMenuChoose(void)
 	char choose = -1;
 	printf("请输入您需要的服务：");
 	while(!(choose = getchar()));
+	while( getchar() != '\n');
 	
 	return choose - '0';
 }
@@ -114,11 +115,7 @@ int adminAddBusiness(int file_descriptor, LoginResultModel * login_model)
 	getAdminAddModel(&create_model);
 
 	ret = sendAdminAddRequest(file_descriptor, &create_model, &create_result);
-	if( !ret ){ // 添加成功打印新用户信息
-
-	}
 	 
-
 	return ret;
 }
 
@@ -137,7 +134,6 @@ int getAdminAddModel(EmployeeCreateModel * create_model)
 {
 	// TODO create_model 中的 token 没有处理
 	char tmp [20] = {0};
-	fgets(tmp, sizeof(tmp), stdin);
 	printf("请输入员工的姓名：");
 	bzero(tmp, sizeof(tmp));
 	getDataFgets(tmp, sizeof(tmp));
@@ -149,7 +145,13 @@ int getAdminAddModel(EmployeeCreateModel * create_model)
 	printf("请输入员工的性别："); 
 	bzero(tmp, sizeof(tmp));
 	getDataFgets(tmp, sizeof(tmp));
-	create_model->sex = (uchar) atoi(tmp);
+
+	if(strncmp(tmp, STR_MALE, sizeof(STR_MALE))){
+		create_model->sex = Male;
+	}else{
+		create_model->sex = Female;
+	}
+
 	printf("请输入员工的年龄："); 
 	bzero(tmp, sizeof(tmp));
 	getDataFgets(tmp, sizeof(tmp));
@@ -192,40 +194,16 @@ int sendAdminAddRequest(int file_descriptor, EmployeeCreateModel *create_model, 
 	ret = request(file_descriptor, &req, sizeof(req), create_model, sizeof(EmployeeCreateModel),
 			 &res, sizeof(res), result, sizeof(EmployeeCreateResult));
 
+
+	printf("******************************************\n");
+	printf("************** 姓名:%s\n", result->name);
+	printf("************** 性别:%s\n", result->pwd);
+	printf("************** 年龄:%d\n\n", result->empno);
+
 	return ret ;
 }
 
-/*
- * description : 创建新员工成功后打印员工信息查询业务
- * function    : 
- * @param [ in]: 
- * 		int file_descriptor
- * 		LoginModel * login_model
- * @param [out]: 
- * @return     : 0:正常退出  !0:错误退出
- * @Author     : xuyuanbing
- * @Other      : 
- */
-int employeeQueryBusiness2(int file_descriptor, LoginResultModel* login_model)
-{
-	EmployeeQueryModel query_model = {0};
-	strcpy(query_model.name, login_model->name);
-	query_model.empno = login_model->empno;
-	EmployeeQueryResult query_result = {0};
 
-    int ret = sendEmployeeQueryRequest(&query_model, &query_result);
-	if(ret){
-		return ret;
-	}
-	printf("******************************************\n");
-	printf("************** 姓名:%s\n", query_result.name);
-	printf("************** 性别:%s\n", query_result.sex==Male?"男":"女");
-	printf("************** 年龄:%d\n", query_result.age);
-	printf("************** 工资:%d\n", query_result.salary);
-	printf("************** 部门:%s\n", query_result.department);
-	
-	return ret;
-}
 
 /*
  * description : 交互获取用户信息(用户名)
