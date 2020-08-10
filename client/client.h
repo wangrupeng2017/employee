@@ -2,6 +2,7 @@
 #define __CLIENT_H__
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
@@ -9,28 +10,91 @@
 #include <errno.h>
 #include "../common/socket_models.h"
 
-// 连接socket服务器 
-int connectServer(char* ip, int port);
+/*
+ * Description 		: 连接socket服务器
+ * function 		:   connectServer 
+ * @param [ in] 
+ * 		char [20] ip 服务端ip 地址
+ * 		int port     服务端端口号
+ * @param [out] 
+ * @return      
+ * 		int 		 已连接的文件描述符
+ * @Author      xuyuanbing
+ * @Other       
+ */
+int connectServer(char *ip, int port);
 
-// 打印首页菜单
-void showHomeMenu(void);
+/*
+ * description : 登录业务
+ * function    : 
+ * @param [ in]: 
+ * 		int fd, 
+ * 		LoginModel *login_model
+ * @param [out]: 
+ * 		LoginResultModel *result_model
+ * @return     : 
+ *    0:登陆成功 !0: 登陆失败
+ * @Author     : xuyuanbing
+ * @Other      : 
+ */
+int loginBusiness(int fd, LoginModel *login_model, LoginResultModel *result_model);
+
+// 打印登陆菜单
+void showLoginMenu(void);
 
 // 接收菜单输入(注意:输入格式并清除输入缓冲区)
 int getHomeMenuChoose(void);
 
-// 解析菜单输入
-void gotoChoose(int userChoose);
+/*
+ * description : 交互获取登录信息 用户名/密码 格式化登录数据
+ * function    : getLoginModel
+ * @param [ in]: 
+ * @param [out]: 
+ * 		LoginModel *model 用户登陆信息
+ * @return     : 
+ * 		int 0: 获取用户信息成功
+ * 			1: 获取用户信息失败
+ * @Author     : xuyuanbing
+ * @Other      : 
+ */
+int getLoginModel(LoginModel *model);
 
+/*
+ * description : 发送登录请求, 接收结果
+ * function    : sendLoginRequest
+ * @param [ in]: 
+ * 		LoginModel *model 用户登陆信息
+ * @param [out]: 
+ *  	LoginResultModel *out 服务器端返回的信息
+ * @return     : 
+ * 		int 0: 发送登陆请求成功
+ * 			1: 发送登陆请求出错
+ * @Author     : xuyuanbing
+ * @Other      : 
+ */
+static int sendLoginRequest(int fd, LoginModel *model, LoginResultModel *out);
 
-// 登录业务:
-int loginBusiness(int);
+/*
+ * description : 通用的请求服务端的方法 不是放在这个文件的 TODO
+ * function    : 
+ * @param [ in]: 
+ * 		int file_descriptor
+ * 		void * request_data 请求信息
+ * 		size_t request_data_size
+ * 		size_t response_data_size
+ * @param [out]: 
+ * 		void * response_data 请求的返回结果
+ * @return     : 
+ * 		0:请求成功 !0:请求出错
+ * @Author     : xuyuanbing
+ * @Other      : 
+ */
 
-//  交互获取登录信息 用户名/密码 格式化登录数据:::
-     int getLoginModel( LoginModel *model);
+int request(int file_descriptor, void * request_head, 
+		size_t request_head_size, void * request_data,
+		size_t request_data_size, void * response_head,
+		size_t response_head_size, void * response_data, size_t response_data_size);
 
- // 发送登录请求, 接收结果:::
-   static int sendLoginRequest(int,  LoginModel *model,  LoginResultModel *out);
-
-
+void getDataFgets(char * data, size_t size);
 
 #endif // __CLIENT_H__

@@ -1,14 +1,12 @@
 /*******************************************************
- * File Name   : client.c
+ * File Name   : client/client2.c
  * Version     : V1.0
  * Author      : yuanbingxu
  * Organization: https://github.com/xuyuanbing
- * Create Time : 2020-08-08 08:18:14
- * Description : 员工管理系统，客户端
+ * Create Time : 2020-08-09 20:37:22
+ * Description : 
  *******************************************************/
 #include "client.h"
-
-// 连接socket服务器 
 
 /*
  * Description 		: 连接socket服务器
@@ -24,63 +22,60 @@
  */
 int connectServer(char *ip, int port)
 {
-	int fd = -1;
-	if( (fd = socket(AF_INET, SOCK_STREAM, 0)) < 0){
-		perror("open socket tcp");
-		return fd;
-	}
+	int fd = socket(AF_INET, SOCK_STREAM, 0);
+	TRY_ERROR(fd == -1, "open socket tcp");
 
 
 	// 创建结构体
 	struct sockaddr_in server_address;
 	bzero(&server_address, sizeof(server_address));
-	
 	server_address.sin_family = AF_INET;
 	server_address.sin_port = htons(port);
 	
-	if(inet_pton(AF_INET, ip, (void *)&server_address.sin_addr.s_addr) != 1){
-		perror("string ip convert");
-		return -1;
-	}
-
-	if( connect(fd, (struct sockaddr *)&server_address, sizeof(server_address)) < 0 ){
-		perror("connect service");
-		return -1;
-	}
+	int ret = inet_pton(AF_INET, ip, (void *)&server_address.sin_addr.s_addr);
+	TRY_ERROR(ret == -1, "string ip convert", goto error_label);
+	
+	ret = connect(fd, (struct sockaddr *)&server_address, sizeof(server_address));
+	TRY_ERROR( ret == -1, "connect service", goto error_label);
 
 	return fd;
+
+error_label:
+    close(fd);
+	return -1;
 }
 
 /*
- * function:    
- * @param [ in] 
- * @param [out] 
- * @return      
- * @Author      xuyuanbing
- * @Other       
+ * description : 登录业务
+ * function    : 
+ * @param [ in]: 
+ * 		int fd, 
+ * 		LoginModel *login_model
+ * @param [out]: 
+ * 		LoginResultModel *result_model
+ * @return     : 
+ *    0:登陆成功 !0: 登陆失败
+ * @Author     : xuyuanbing
+ * @Other      : 
  */
+int loginBusiness(int fd, LoginModel *login_model, LoginResultModel *result_model)
+{
+	int ret = -1;
+	showLoginMenu();
+	if((ret = getHomeMenuChoose())){
+		getLoginModel(login_model);
+		ret = sendLoginRequest(fd, login_model, result_model);
+	}
+	return ret;
+}
 
 // 打印登陆菜单
 void showLoginMenu(void)
 {
 	printf("***************************************************\n");
-	printf("***********   欢迎登陆员工管理系统   **************\n");
+	printf("***********   欢迎使用员工管理系统   **************\n");
+	printf("***********  1:登陆系统  0:退出系统  **************\n");
 	printf("***************************************************\n");
-}
-
-// 打印登陆菜单
-void showNormalUserMenu(void)
-{
-	printf("********************  请选择所需的服务  ********************\n");
-	printf("**************  1:信息查询  2:信息修改 3:退出 **************\n");
-	printf("************************************************************\n");
-}
-
-// 打印首页菜单
-void showHomeMenu(void)
-{
-
-
 }
 
 // 接收菜单输入(注意:输入格式并清除输入缓冲区)
@@ -92,37 +87,6 @@ int getHomeMenuChoose(void)
 	
 	return choose - '0';
 }
-
-// 解析菜单输入
-void gotoChoose(int userChoose)
-{
-	switch(userChoose){
-	case 1:
-		break;
-	case 2:
-		break;
-	case 3:
-		break;
-	default :
-		break;
-	}
-}
-
-
-// 登录业务:
-int loginBusiness(int fd)
-{
-	int ret = 1;
-	LoginModel login_model;
-	if( Failed == getLoginModel(&login_model)){
-		return Failed;
-	}
-	LoginResultModel result_model;
-	if(Failed == sendLoginRequest(fd, &login_model, &result_model)){
-		return Failed;
-	}
-}
-
 
 /*
  * description : 交互获取登录信息 用户名/密码 格式化登录数据
@@ -139,15 +103,16 @@ int loginBusiness(int fd)
 int getLoginModel(LoginModel *model)
 {
 	char word[32] = {0};
-	printf("请输入您的用户名：");
+	
 	fgets(word, sizeof(word), stdin);
-	word[strlen(word) -1] = '\0'; // fgets 自动在最后添加一个 '\n' 
+	memset(word, 0, sizeof(word));
+	printf("请输入您的用户名：");
+	getDataFgets(word, sizeof(word));
 	strncpy(model->name, word, sizeof(model->name) - 1);
 
 	printf("请输入您的密码：");
 	memset(word, 0, sizeof(word));
-	fgets(word, sizeof(word), stdin); 
-	word[strlen(word) -1] = '\0';  // fgets 自动在最后添加一个 '\n'
+	getDataFgets(word, sizeof(word));
 	strncpy(model->pwd, word, sizeof(model->pwd) - 1);
 
 	return 0;
@@ -166,25 +131,73 @@ int getLoginModel(LoginModel *model)
  * @Author     : xuyuanbing
  * @Other      : 
  */
-static int sendLoginRequest(int fd, LoginModel *model, LoginResultModel *out)
+static int sendLoginRequest(int file_descriptor, LoginModel *model, LoginResultModel *login_result_model)
 {
+	RequestInfo req = {
+		.type = Login,
+		.size = sizeof(LoginModel)
+	};
+	ResponseInfo res = {0};
 
-	int ret = -1;
-	do
-	{
-		ret = send(fd, (void *)model, sizeof(LoginModel), 0);
-	} while (ret < 0 && EINTR == errno);
-
-#if 0
-	do
-	{
-		ret = recv(fd, model, sizeof(model), 0);
-	} while (ret < 0 && EINTR == errno);
-	if( ret < 0 ){
-		perror(" send login model");
+	int ret = FuncException;
+	ret = request(file_descriptor, &req, sizeof(RequestInfo), model, sizeof(LoginModel),
+			&res, sizeof(ResponseInfo), login_result_model, sizeof(LoginResultModel));
+	if( res.result == Failed ){
+		printf("%s\n", res.message);
 	}
-#endif
 
-	return ret < 0 ? Failed: Success;
+	return ret;
 }
 
+/*
+ * description : 通用的请求服务端的方法 不是放在这个文件的 TODO
+ * function    : 
+ * @param [ in]: 
+ * 		int file_descriptor
+ * 		void * request_data 请求信息
+ * 		size_t request_data_size
+ * 		size_t response_data_size
+ * @param [out]: 
+ * 		void * response_data 请求的返回结果
+ * @return     : 
+ * 		0:请求成功 !0:请求出错
+ * @Author     : xuyuanbing
+ * @Other      : 
+ */
+
+int request(int file_descriptor, void * request_head, 
+		size_t request_head_size, void * request_data,
+		size_t request_data_size, void * response_head,
+		size_t response_head_size, void * response_data, size_t response_data_size)
+{
+	// 输入参的基本校验 忽 TODO 
+	int ret = FuncException;
+	// 发送请求头
+	ret = send(file_descriptor, request_head, request_head_size,0);
+	TRY_PERROR(ret == FuncException, "发送请求头");
+
+	// 发送请求数据
+	ret = send(file_descriptor, request_data, request_data_size,0);
+	TRY_PERROR(ret == FuncException, "发送请求数据");
+	
+	// 接受反回头
+	ret = recv(file_descriptor, response_head, response_head_size, 0);
+	TRY_PERROR(ret == FuncException, "接收请求头数据");
+	ResponseInfo * response_info = response_head;
+
+	if(response_info->result == Success){
+		// 接受返回的数据
+		ret = recv(file_descriptor, response_data, response_data_size, 0);
+		TRY_PERROR(ret == FuncException, "接收请求数据");
+	}
+
+	return response_info->result;
+}
+
+void getDataFgets(char * data, size_t size)
+{
+	fgets(data, size, stdin);
+	if(strlen(data) < size -1){
+		data[strlen(data) -1] = '\0'; // fgets 自动在最后添加一个 '\n'
+	}
+}
