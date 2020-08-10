@@ -1,5 +1,5 @@
 /************************************************
- * Name: mysqlite3.h
+ * Name: store.h
  * Date: 2020-08-08
  * Description: sqlite3基础封装
  * Author: wrp

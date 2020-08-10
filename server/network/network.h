@@ -10,9 +10,6 @@
 #ifndef __SOCKET_H__
 #define __SOCKET_H___
 
-#define _GNU_SOURCE 1
-#include <poll.h>
-
 #include "common_base.h"
 #include "socket_models.h"
 
@@ -25,13 +22,11 @@ int closeServer();
 
 // 接受客户端连接
 int acceptConnect();
-// 接收/处理 客户端消息
-int receviesMessage(int cfd);
+// 接收消息
+int receviesMessage(int cfd, RequestInfo *head, void **data);
 // 响应结果
-int responseMessage(int cfd, ResponseInfo *info, void *data);
+int responseMessage(int cfd, ResponseInfo *head, void *data);
 
-// Poll操作
-int set_pollfd(struct pollfd**fds, int length, struct pollfd pfd);
-int del_pollfd(struct pollfd**fds, int length, struct pollfd pfd);
+
 
 #endif //__SOCKET_H__
