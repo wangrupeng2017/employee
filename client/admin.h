@@ -11,6 +11,10 @@
 #define __ADMIN_H__
 
 #include "client.h"
+
+#define STR_MALE "男"
+#define STR_FEMALE "女"
+
 /*
  * description : 管理员业务
  * function    : 
@@ -89,5 +93,6 @@ int getAdminAddModel(EmployeeCreateModel * create_model);
  * @Other      : 
  */
 int sendAdminAddRequest(int file_descriptor, EmployeeCreateModel *create_model, EmployeeCreateResult *result);
+
 
 #endif /* __ADMIN_H__ */
