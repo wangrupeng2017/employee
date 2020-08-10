@@ -415,11 +415,11 @@ int checkSigninInfo(int empno, int *out)
 
 	char sql[256]  = "";
 	char *sql_format = "SELECT no FROM signin  WHERE no='%d' and time>'%d' and time<'%d';";
-	sprintf(sql, sql_format, mktime(&stm), mktime(&stm)+24*60*60);
+	sprintf(sql, sql_format, empno, mktime(&stm), mktime(&stm)+24*60*60);
 
 	int ret = sqlite3_get_table(db_instance, sql, &result, &nRow, &nColumn, &pzErrmsg);
 	TRY_SQLITE_ERROR(ret!=SQLITE_OK, "检查是否签到:", db_instance, return FuncError);
-	
+		
 	nRow>0 ? (*out=1) : (*out=0);
 	return FuncNormal;
 }

@@ -89,12 +89,12 @@ int businessEntrance(int fd)
 		case SignIn:		
 			printf("[%d]:员工签到\n", fd);
 			saveLogs(empno, "员工签到");
-			ret = logsQueryHandler(fd, &req_head, req_data, &res_head, &res_data);		
+			ret = signInHandler(fd, &req_head, req_data, &res_head, &res_data);		
 			break;
 		case SignInInfo:		
 			printf("[%d]:查询签到信息\n", fd);
 			saveLogs(empno, "查询签到信息");
-			ret = logsQueryHandler(fd, &req_head, req_data, &res_head, &res_data);		
+			ret = signInInfoHandler(fd, &req_head, req_data, &res_head, &res_data);		
 			break;
 	}
 	if (ret < 0)
