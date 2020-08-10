@@ -7,11 +7,51 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
-#include "mysqlite3.h"
-#include "socket.h"
-
+#include "iopoll.h"
+#include "store.h"
+#include "network.h"
 
 #define POLL_TIMEOUT  (1000*5)
+
+// 服务端socket描述符
+static int g_serverfd = -1;
+
+// poll回调方法
+void iopoll_call(int fd, int revents)
+{
+	// 客户端强制退出事件
+	if (revents&POLLRDHUP)
+	{
+		printf("[%d] 客户端已退出\n", fd);
+		iopollDel(fd);
+		return;
+	}
+
+	// 有新客户端连接
+	if ((fd==g_serverfd) && (revents&POLLIN))
+	{
+		// 接受客户端连接
+		int client_fd = acceptConnect();
+		if (client_fd<0) return;
+
+		// 客户端sockfd添加到poll中
+		iopollAdd(client_fd, POLLIN);
+		return;
+	}
+
+	// 收到客户端消息
+	if (revents&POLLIN)
+	{
+		int ret = businessEntrance(fd);
+		if (ret < 0) 
+		{
+			close(fd);
+			iopollDel(fd);
+		}
+	}
+}
+
+
 int main(int argc, const char *argv[])
 {
 	// 参数检查
@@ -27,73 +67,17 @@ int main(int argc, const char *argv[])
 	if (ret < 0) return FuncError;
 
 	// 创建socket服务
-	int server_fd = createServer(atoi(argv[1]));
-	if (server_fd < 0) return FuncError;
+	g_serverfd = createServer(atoi(argv[1]));
+	if (g_serverfd < 0) return FuncError;
 	
-	// poll服务器相关
-	struct pollfd *pollfds = NULL;
-	int nfds = 0;
-
-	struct pollfd pfd = {0};
-	pfd.fd = server_fd;
-	pfd.events = POLLIN;
-	nfds = set_pollfd(&pollfds, nfds, pfd);
+	// 添加server_fd到poll中
+	iopollAdd(g_serverfd, POLLIN);
 
 	while(1)
 	{
-		int ret = poll(pollfds, nfds, POLL_TIMEOUT);
+		int ret = iopollWait(POLL_TIMEOUT, iopoll_call);
 		//TRY_ERROR(ret==0, "poll() timeout", continue);
 		TRY_PERROR(ret==-1, "poll():", return FuncError);
-
-		int i       = 0;
-		int sockfd  = 0;
-		int revents = 0;
-		for (i=0; i<nfds; i++)
-		{
-			sockfd  = pollfds[i].fd;
-			revents = pollfds[i].revents;
-
-			if (revents == 0)
-				continue;
-
-			// 客户端强制退出事件
-			if (revents&POLLRDHUP)
-			{
-				printf("[%d] 客户端已退出\n", sockfd);
-				nfds = del_pollfd(&pollfds, nfds, pollfds[i]);
-				i -= 1;
-				continue;
-			}
-			
-			// 有新客户端连接
-			if ((sockfd==server_fd) && (revents&POLLIN))
-			{
-				// 接受客户端连接
-				int client_fd = acceptConnect();
-				if (client_fd<0) continue;
-
-				// 客户端sockfd添加到poll中
-				struct pollfd client_pfd = {0};
-				client_pfd.fd = client_fd;
-				client_pfd.events = POLLIN;
-				nfds = set_pollfd(&pollfds, nfds, client_pfd);
-				continue;
-			}
-
-			// 收到客户端消息
-			if (revents&POLLIN)
-			{
-				ret = receviesMessage(pollfds[i].fd);
-				// 断开客户端连接
-				if (ret<0)
-				{
-					printf("[%d] 客户端已退出\n", sockfd);
-					close(sockfd);
-					nfds = del_pollfd(&pollfds, nfds, pollfds[i]);
-					i -= 1;
-				}
-			}
-		}
 	}
 
 

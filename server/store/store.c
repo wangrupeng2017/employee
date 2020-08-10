@@ -1,5 +1,5 @@
 /************************************************
- * Name: mysqlite3.c 
+ * Name: store.c 
  * Date: 2020-08-08
  * Description: sqlite3基础封装
  * Author: wrp
@@ -14,7 +14,7 @@
 #include <sqlite3.h>
 
 
-#include "mysqlite3.h"
+#include "store.h"
 
 // 数据库对象实例
 static sqlite3* db_instance = NULL;
@@ -80,18 +80,16 @@ int checkEmployeeInfo(char name[EMPLOYEE_NAME_SIZE], char pwd[EMPLOYEE_PWD_SIZE]
 	char *pzErrmsg = NULL;
 	int nRow       = 0;
 	int nColumn    = 0;
-
+	
 	// 格式化SQL语句, 执行查询
-	char *sql_format = "SELECT no, age, sex, salary, role, \
-						name, password, department \
-					    FROM employee \
-					    WHERE name='%s' \
-					    AND password='%s';";
+	char *sql_format = "SELECT no, age, sex, salary, role, name, password, department \
+					    FROM employee  WHERE name='%s'  AND password='%s';";
 	sprintf(sql, sql_format, name, pwd); 
 
 	int ret = sqlite3_get_table(db_instance, sql, &result, &nRow, &nColumn, &pzErrmsg);
 	TRY_SQLITE_ERROR(ret!=SQLITE_OK, "查询员工:", db_instance, return FuncError);
 	
+
 	// 格式化员工信息
 	if (nRow > 0)
 	{
@@ -124,7 +122,10 @@ int createEmployeeInfo(EmployeeInfo *info, uint *empno)
 	int nRow       = 0;
 	int nColumn    = 0;
 	// 查询最大员工号
-	int ret = sqlite3_get_table(db_instance, "SELECT no FROM employee ORDER BY no DESC LIMIT 1;", &result, &nRow, &nColumn, &pzErrmsg);
+	int ret = sqlite3_get_table(db_instance, \
+					"SELECT no FROM employee ORDER BY no DESC LIMIT 1;", \
+					&result, &nRow, &nColumn, &pzErrmsg);
+
 	TRY_SQLITE_ERROR(ret!=SQLITE_OK, "查询最大员工号:", db_instance, return FuncError);
 	(nRow == 0) ? (*empno = 1) : (*empno = atoi(result[1*nColumn + 0]) + 1);
 
@@ -179,9 +180,7 @@ int modifyEmployeeInfo(EmployeeInfo *info)
 			info->name, info->pwd, info->department, info->empno);
 	*/
 	// 普通员工修改信息
-	char *sql_format = "UPDATE employee \
-					   SET age='%d', sex='%d', name='%s', password='%s' \
-					   WHERE no='%d'";
+	char *sql_format = "UPDATE employee SET age='%d', sex='%d', name='%s', password='%s' WHERE no='%d'";
 	sprintf(sql, sql_format, info->age, info->sex, info->name, info->pwd, info->empno);
 
 	int ret = sqlite3_exec(db_instance, sql, NULL, NULL, NULL);
@@ -209,10 +208,8 @@ int queryEmployeeInfo(uint empno, char name[EMPLOYEE_NAME_SIZE], EmployeeInfo in
 	int nColumn    = 0;
 
 	// 格式化SQL语句, 执行查询
-	char *sql_format = "SELECT no, age, sex, salary, role, \
-					   name, password, department \
-					   FROM employee \
-					   WHERE %s;";
+	char *sql_format = "SELECT no, age, sex, salary, role, name, password, department \
+					    FROM employee WHERE %s;";
 	
 	char condition[100] = "";
 	(empno > 0) ? sprintf(condition, "no='%d'", empno) : sprintf(condition, "name='%s'", name);
@@ -311,14 +308,14 @@ int queryLogInfo(char time[LOG_TIME_SIZE], LogQueryResult info[QUERY_LOG_COUNT])
  * 	 message  : 日志内容
  */
 void saveLogs(uint empno, char message[50])
-{/*{{{*/
+{
 	LogInfo info = {0};
 	info.empno = empno;
 	info.time  = time(NULL);
 	strcpy(info.description, message);
 
 	createLogInfo(&info);
-}/*}}}*/
+}
 
 /*
  * function:    createLoginStateInfo
@@ -329,7 +326,7 @@ void saveLogs(uint empno, char message[50])
  * @return      0:成功  !0:处理出错
  */
 int createLoginStateInfo(int sockfd, EmployeeInfo *info)
-{/*{{{*/
+{
 	char sql[256] = "";
 	sprintf(sql, "DELETE FROM token WHERE sockfd='%d';", sockfd);
 	sqlite3_exec(db_instance, sql, NULL, NULL, NULL); 
@@ -343,7 +340,7 @@ int createLoginStateInfo(int sockfd, EmployeeInfo *info)
 	TRY_SQLITE_ERROR(ret!=SQLITE_OK, "创建登录信息:", db_instance, return FuncError);
 
 	return FuncNormal;
-}/*}}}*/
+}
 
 /*
  * function:    deleteLoginStateInfo
@@ -353,7 +350,7 @@ int createLoginStateInfo(int sockfd, EmployeeInfo *info)
  * @return      0:成功  !0:处理出错
  */
 int deleteLoginStateInfo(uint empno)
-{/*{{{*/
+{
 	char sql[256] = "";
 	char *sql_format = "DELETE FROM token WHERE no='%d';";
 	sprintf(sql, sql_format, empno);
@@ -362,7 +359,7 @@ int deleteLoginStateInfo(uint empno)
 	TRY_SQLITE_ERROR(ret!=SQLITE_OK, "删除登录信息:", db_instance, return FuncError);
 
 	return FuncNormal;
-}/*}}}*/
+}
 
 /*
  * function:    deleteLoginStateInfo
@@ -372,7 +369,7 @@ int deleteLoginStateInfo(uint empno)
  * @return      >0:员工号, <0:不在线/未登录
  */
 int checkLoginStateInfo(int sockfd)
-{/*{{{*/
+{
 	char **result  = NULL;
 	char *pzErrmsg = NULL;
 	int nRow       = 0;
@@ -385,7 +382,7 @@ int checkLoginStateInfo(int sockfd)
 	TRY_SQLITE_ERROR(ret!=SQLITE_OK, "查询登录信息:", db_instance, return FuncError);
 	
 	return nRow>0 ? atoi(result[1*nColumn + 0]) : -1;
-}/*}}}*/
+}
 
 
 /*
