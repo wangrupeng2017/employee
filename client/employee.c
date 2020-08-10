@@ -103,8 +103,8 @@ int employeeQueryBusiness(int file_descriptor, LoginResultModel * login_model)
 	}
 	printf("******************************************\n");
 	printf("************** 姓名:%s\n", query_result.name);
-	printf("************** 性别:%c\n", query_result.sex);
-	printf("************** 年龄:%c\n", query_result.age);
+	printf("************** 性别:%s\n", query_result.sex==Male?"男":"女");
+	printf("************** 年龄:%d\n", query_result.age);
 	printf("************** 工资:%d\n", query_result.salary);
 	printf("************** 部门:%s\n", query_result.department);
 	
@@ -132,7 +132,7 @@ int sendEmployeeQueryRequest(int file_descriptor, EmployeeQueryModel* query_mode
 		.size = sizeof(EmployeeQueryModel)
 	};
 	ResponseInfo res = {0};
-	ret = request(file_descriptor,&req, sizeof(req), &query_model, sizeof(EmployeeQueryModel),
+	ret = request(file_descriptor,&req, sizeof(req), query_model, sizeof(EmployeeQueryModel),
 			&res, sizeof(res), query_Result, sizeof(EmployeeQueryResult));
 	return ret;
 }
