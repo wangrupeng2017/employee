@@ -230,7 +230,7 @@ int employeeQuitBusiness(int file_descriptor, LoginResultModel *login_model)
 	char temp [12] = {0};
 	fgets(temp, sizeof(temp), stdin);
 	// 用户不退去了
-	if(!strncasecmp(temp, YES, strlen(YES))){
+	if(strncasecmp(temp, YES, strlen(YES))){
 		return FuncException;
 	}
 
