@@ -184,10 +184,6 @@ int request(int file_descriptor, void * request_head,
 	TRY_PERROR(ret == FuncException, "接收请求头数据");
 	ResponseInfo * response_info = response_head;
 
-	printf("%s:%s:%d\n", __FILE__, __func__, __LINE__);
-	printf("操作类型:%d 大小:%d 响应结果:%d 响应信息:%s\n", response_info->type,
-			response_info->size, response_info->result, response_info->message);
-
 	if((response_info->result == Success) && (response_info->size > 0)){
 		// 接受返回的数据
 		ret = recv(file_descriptor, response_data, response_info->size, 0);
