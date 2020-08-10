@@ -5,7 +5,7 @@
 
 >然后，执行可执行程序main并传入服务端口号，eg: ./main 9999
 
->程序启动会自动创建employee.db数据库，并==自动创建了admin账户，密码为admin==和==test账户，密码为test==
+>程序启动会自动创建employee.db数据库，并自动创建了admin账户，密码为admin 和test账户，密码为test
 
 ### 主要应用技术
 >sqlite数据库
