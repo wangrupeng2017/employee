@@ -91,7 +91,7 @@ int gotoEmployeeChoose(int file_descriptor, int userChoose, LoginResultModel * l
  * @Other      : 
  */
 int employeeQueryBusiness(int file_descriptor, LoginResultModel * login_model)
-{/*{{{*/
+{
 	EmployeeQueryModel query_model = {0};
 	strncpy(query_model.name, login_model->name, sizeof(query_model.name));
 	query_model.empno = login_model->empno;
@@ -109,7 +109,7 @@ int employeeQueryBusiness(int file_descriptor, LoginResultModel * login_model)
 	printf("************** 部门:%s\n", query_result.department);
 	
 	return ret;
-}/*}}}*/
+}
 
 /*
  * description : 发送信息查询请求, 接收查询结果
@@ -125,7 +125,7 @@ int employeeQueryBusiness(int file_descriptor, LoginResultModel * login_model)
  */
 int sendEmployeeQueryRequest(int file_descriptor, EmployeeQueryModel* query_model,
 		EmployeeQueryResult *query_Result)
-{/*{{{*/
+{
 	int ret = -1;
 	RequestInfo req = {
 		.type = EmployeeQuery,
@@ -135,7 +135,7 @@ int sendEmployeeQueryRequest(int file_descriptor, EmployeeQueryModel* query_mode
 	ret = request(file_descriptor,&req, sizeof(req), query_model, sizeof(EmployeeQueryModel),
 			&res, sizeof(res), query_Result, sizeof(EmployeeQueryResult));
 	return ret;
-}/*}}}*/
+}
 
 /*
  * description : 普通员工信息修改业务

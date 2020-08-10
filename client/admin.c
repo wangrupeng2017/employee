@@ -7,6 +7,7 @@
  * Description : 
  *******************************************************/
 #include "admin.h"
+#include "other.h"
 
 /*
  * description : 管理员业务
@@ -60,6 +61,7 @@ int gotoAdminChoose(int file_descriptor, int userChoose, LoginResultModel * logi
 
 		break;
 	case 3:
+		adminQueryBusiness(file_descriptor, login_model);
 		break;
 	case 4:
 		break;
@@ -204,20 +206,20 @@ int sendAdminAddRequest(int file_descriptor, EmployeeCreateModel *create_model, 
  * @Author     : xuyuanbing
  * @Other      : 
  */
-int employeeQueryBusiness(int file_descriptor, LoginModel * login_model)
+int employeeQueryBusiness2(int file_descriptor, LoginResultModel* login_model)
 {
 	EmployeeQueryModel query_model = {0};
-	query_model.name  = login_model->name;
+	strcpy(query_model.name, login_model->name);
 	query_model.empno = login_model->empno;
-	EmployeeQueryResult query_Result = {0};
+	EmployeeQueryResult query_result = {0};
 
     int ret = sendEmployeeQueryRequest(&query_model, &query_result);
 	if(ret){
 		return ret;
 	}
 	printf("******************************************\n");
-	printf("************** 姓名:%s\n", query_Result.name);
-	printf("************** 性别:%s\n", query_result.sex);
+	printf("************** 姓名:%s\n", query_result.name);
+	printf("************** 性别:%s\n", query_result.sex==Male?"男":"女");
 	printf("************** 年龄:%d\n", query_result.age);
 	printf("************** 工资:%d\n", query_result.salary);
 	printf("************** 部门:%s\n", query_result.department);

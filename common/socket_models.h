@@ -74,11 +74,10 @@ typedef struct QuitModel {/*{{{*/
 } QuitModel;/*}}}*/
 
 // 查询员工请求/响应结构
-typedef struct EmployeeQueryModel {/*{{{*/
+typedef struct EmployeeQueryModel {
 	char name[EMPLOYEE_NAME_SIZE];
 	uint empno;
-	uint query_empno;
-} EmployeeQueryModel;/*}}}*/
+} EmployeeQueryModel;
 typedef struct EmployeeQueryResult {
 	uint  empno;
 	char  name[EMPLOYEE_NAME_SIZE];
