@@ -1,4 +1,5 @@
 
+#include <time.h>
 #include "other.h"
 
 // 管理员查询相关方法
@@ -70,4 +71,53 @@ Input_Label:
 
 	return FuncNormal;
 }
+
+
+// 查询日志操作
+int adminQueryLogsBusiness(int file_descriptor, LoginResultModel * login_model)
+{
+	time_t t      = time(NULL);
+	struct tm *tm = localtime(&t);
+
+	char time_str[20];
+	fprintf(stderr, "请输入查询的日期(%d-%d-%d):", tm->tm_year+1900, tm->tm_mon+1, tm->tm_mday);
+	scanf("%s", time_str);
+	while(getchar() != '\n');
+
+	int ret = 0;
+	RequestInfo    req_head = {0};
+	LogQueryModel  req_data = {0};
+	ResponseInfo   res_head = {0};
+	LogQueryResult res_data[20] = {0};
+	req_head.type = LogsQuery;
+	req_head.size = sizeof(LogQueryModel);
+	strcpy(req_data.date, time_str);
+
+	// 发送查询请求
+	ret = request(file_descriptor, 
+			&req_head, sizeof(req_head), &req_data, sizeof(req_data),
+			&res_head, sizeof(res_head), res_data, sizeof(res_data));
+
+	// 查询结果数量
+	int logs_count = res_head.size/sizeof(LogQueryResult);
+	if (logs_count == 0)
+	{
+		printf("在这个日子中，没有查询到任何操作记录\n");
+		return FuncNormal;
+	}
+
+	// 打印日志信息
+	int i = 0;
+	for (i=0; i<logs_count; i++)
+	{
+		LogQueryResult log = res_data[i];
+		printf("[%d]\t%d\t%s\t%s\n", i+1, log.empno, log.date, log.describe);
+	}
+
+	return FuncNormal;
+}
+
+
+
+
 

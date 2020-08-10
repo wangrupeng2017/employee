@@ -65,6 +65,7 @@ int gotoAdminChoose(int file_descriptor, int userChoose, LoginResultModel * logi
 	case 4:
 		break;
 	case 5:
+		adminQueryLogsBusiness(file_descriptor, login_model);
 		break;
 	case 0:
 		ret = employeeQuitBusiness(file_descriptor, login_model);
