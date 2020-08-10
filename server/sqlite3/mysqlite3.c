@@ -170,12 +170,19 @@ int deleteEmployeeInfo(uint empno)
 int modifyEmployeeInfo(EmployeeInfo *info)
 {
 	char sql[256] = "";
+	/**
 	char *sql_format = "UPDATE employee \
 					   SET age='%d', sex='%d', salary='%d', role='%d', \
 					       name='%s', password='%s', department='%s' \
 					   WHERE no='%d'";
 	sprintf(sql, sql_format, info->age, info->sex, info->salary, info->role, \
 			info->name, info->pwd, info->department, info->empno);
+	*/
+	// 普通员工修改信息
+	char *sql_format = "UPDATE employee \
+					   SET age='%d', sex='%d', name='%s', password='%s' \
+					   WHERE no='%d'";
+	sprintf(sql, sql_format, info->age, info->sex, info->name, info->pwd, info->empno);
 
 	int ret = sqlite3_exec(db_instance, sql, NULL, NULL, NULL);
 	TRY_SQLITE_ERROR(ret!=SQLITE_OK, "修改员工:", db_instance, return FuncError);

@@ -84,7 +84,7 @@ int getHomeMenuChoose(void)
 	char choose = -1;
 	printf("请输入您需要的服务：");
 	while(!(choose = getchar()));
-	
+	while(getchar() != '\n'); //去掉空格
 	return choose - '0';
 }
 
@@ -104,7 +104,6 @@ int getLoginModel(LoginModel *model)
 {
 	char word[32] = {0};
 	
-	fgets(word, sizeof(word), stdin);
 	memset(word, 0, sizeof(word));
 	printf("请输入您的用户名：");
 	getDataFgets(word, sizeof(word));
