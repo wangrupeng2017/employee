@@ -10,7 +10,84 @@
 #ifndef __ADMIN_H__
 #define __ADMIN_H__
 
+#include "client.h"
+/*
+ * description : 管理员业务
+ * function    : 
+ * @param [ in]: 
+ * @param [out]: 
+ * @return     : 
+ * @Author     : xuyuanbing
+ * @Other      : 
+ */
+int doAdminBusiness(int file_descriptor, LoginResultModel * login_model);
 
-static void getDataFgets(char * data, size_t size);
+/*
+ * description : 打印管理员菜单
+ * function    : 
+ * @param [ in]: 
+ * @param [out]: 
+ * @return     : 
+ * @Author     : xuyuanbing
+ * @Other      : 
+ */
+ void showAdminMenu(void);
+
+// 解析菜单输入
+int gotoAdminChoose(int file_descriptor, int userChoose, LoginResultModel * login_model);
+
+/*
+ * description : 接收菜单输入
+ * function    : 
+ * @param [ in]: 
+ * @param [out]: 
+ * @return     : int 选择的菜单序号
+ * @Author     : xuyuanbing
+ * @Other      : 
+ */
+int getAdminMenuChoose(void);
+
+
+/*
+ * description : 添加用户业务
+ * function    : 
+ * @param [ in]: 
+ * 		int file_descriptor
+ * 		loginresultmodel * login_model
+ * @param [out]: 
+ * @return     : 返回值: 0:新建用户成功 !0:新建用户失败
+ * @Author     : xuyuanbing
+ * @Other      : 
+ */
+int adminAddBusiness(int file_descriptor, LoginResultModel * login_model);
+
+/*
+ * description : 交互获取用户信息 员工号(自动生成)/用户名/密码(初始:123)/性别/年龄/部门/工资
+ * function    : getAdminAddModel
+ * @param [ in]: 
+ *     EmployeeCreateModel * create_model 请求信息
+ * @param [out]: 
+ * @return     : 
+ *   返回值: 0:信息获取成功 !0:获取错误或用户取消操作
+ * @Author     : xuyuanbing
+ * @Other      : 
+ */
+int getAdminAddModel(EmployeeCreateModel * create_model);
+
+
+/*
+ * description : 格式化添加用户数据, 发送添加用户请求, 接收处理结果
+ * function    : 
+ * @param [ in]: 
+ * 		EmployeeCreateModel*create_model 请求信息添加新员工
+ * 		int file_descriptor
+ * @param [out]: 
+ * 		EmployeeCreateResult *result 请求添加用户的结果
+ * @return     : 
+ * 		0:请求成功 !0:请求出错
+ * @Author     : xuyuanbing
+ * @Other      : 
+ */
+int sendAdminAddRequest(int file_descriptor, EmployeeCreateModel *create_model, EmployeeCreateResult *result);
 
 #endif /* __ADMIN_H__ */

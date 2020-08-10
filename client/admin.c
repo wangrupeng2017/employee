@@ -8,7 +8,28 @@
  *******************************************************/
 #include "admin.h"
 
-// 管理员业务:
+/*
+ * description : 管理员业务
+ * function    : 
+ * @param [ in]: 
+ * @param [out]: 
+ * @return     : 
+ * @Author     : xuyuanbing
+ * @Other      : 
+ */
+int doAdminBusiness(int file_descriptor, LoginResultModel * login_model)
+{
+	int ret = 0; //在在菜单向循环，非0 则返回到登陆页面 
+	int choose = 0;
+	do
+	{
+		showAdminMenu();
+		ret = gotoAdminChoose(file_descriptor, getAdminMenuChoose(), login_model);
+	} while (ret);
+
+	return ret;
+}
+
 /*
  * description : 打印管理员菜单
  * function    : 
@@ -18,7 +39,7 @@
  * @Author     : xuyuanbing
  * @Other      : 
  */
- void show_admin_menu(void)
+ void showAdminMenu(void)
 {
 	printf("********************  请选择所需的服务  ********************\n");
 	printf("**************  1:添加用户  2:删除用户 3:信息查询 **********\n");
@@ -27,10 +48,13 @@
 }
 
 // 解析菜单输入
-void gotoAdminChoose(int userChoose)
+int gotoAdminChoose(int file_descriptor, int userChoose, LoginResultModel * login_model)
 {
+	int ret = -1;
+
 	switch(userChoose){
 	case 1:
+		adminAddBusiness(file_descriptor, login_model);
 		break;
 	case 2:
 
@@ -46,6 +70,8 @@ void gotoAdminChoose(int userChoose)
 	default :
 		break;
 	}
+
+	return ret;
 }
 
 /*
@@ -66,28 +92,32 @@ int getAdminMenuChoose(void)
 	return choose - '0';
 }
 
-// TODO
-#if 0
-3.解析菜单输入
-    3.1: 输入错误, 提示信息, Goto管理员菜单
-    3.2: 选择添加用户, Goto添加用户业务
-    3.3: 选择删除用户, Goto删除用户业务
-    3.4: 选择修改用户, Goto修改用户业务
-    3.5: 选择查询用户, Goto查询用户业务
-    3.6: 选择查询操作日志, Goto操作日志查询业务
-    3.7: 选择退出, Goto退出业务(return 0)
-#endif
 
-4.添加用户业务:::
-int adminAddBusiness(void);
-
-
-static void getDataFgets(char * data, size_t size)
+/*
+ * description : 添加用户业务
+ * function    : 
+ * @param [ in]: 
+ * 		int file_descriptor
+ * 		loginresultmodel * login_model
+ * @param [out]: 
+ * @return     : 返回值: 0:新建用户成功 !0:新建用户失败
+ * @Author     : xuyuanbing
+ * @Other      : 
+ */
+int adminAddBusiness(int file_descriptor, LoginResultModel * login_model)
 {
-	fgets(data, size, stdin);
-	if(strlen(data) < size -1){
-		data[strlen(word) -1] = '\0'; // fgets 自动在最后添加一个 '\n'
+	int ret = -1; 
+	EmployeeCreateModel create_model = {0};
+	EmployeeCreateResult create_result = {0};
+	getAdminAddModel(&create_model);
+
+	ret = sendAdminAddRequest(file_descriptor, &create_model, &create_result);
+	if( !ret ){ // 添加成功打印新用户信息
+
 	}
+	 
+
+	return ret;
 }
 
 /*
@@ -105,9 +135,11 @@ int getAdminAddModel(EmployeeCreateModel * create_model)
 {
 	// TODO create_model 中的 token 没有处理
 	char tmp [20] = {0};
+	fgets(tmp, sizeof(tmp), stdin);
 	printf("请输入员工的姓名：");
+	bzero(tmp, sizeof(tmp));
 	getDataFgets(tmp, sizeof(tmp));
-	strncpy(model->name, tmp, sizeof(model->name) - 1);
+	strncpy(create_model->name, tmp, sizeof(create_model->name) - 1);
 	printf("请输入员工的密码：");
 	bzero(tmp, sizeof(tmp));
 	getDataFgets(tmp, sizeof(tmp));
@@ -115,15 +147,15 @@ int getAdminAddModel(EmployeeCreateModel * create_model)
 	printf("请输入员工的性别："); 
 	bzero(tmp, sizeof(tmp));
 	getDataFgets(tmp, sizeof(tmp));
-	create_model.sex = (ucahr) atoi(tmp);
+	create_model->sex = (uchar) atoi(tmp);
 	printf("请输入员工的年龄："); 
 	bzero(tmp, sizeof(tmp));
 	getDataFgets(tmp, sizeof(tmp));
-	create_model.age = (uchar) atoi(tmp);
+	create_model->age = (uchar) atoi(tmp);
 	printf("请输入员工的工资："); 
 	bzero(tmp, sizeof(tmp));
 	getDataFgets(tmp, sizeof(tmp));
-	create_model.salary = (uint) atoi(tmp);
+	create_model->salary = (uint) atoi(tmp);
 	printf("请输入员工的部门："); 
 	bzero(tmp, sizeof(tmp));
 	getDataFgets(tmp, sizeof(tmp));
@@ -131,42 +163,6 @@ int getAdminAddModel(EmployeeCreateModel * create_model)
 	return 0;
 }
 
-/*
- * description : 通用的请求服务端的方法 不是放在这个文件的 TODO
- * function    : 
- * @param [ in]: 
- * 		int file_descriptor
- * 		void * request_data 请求信息
- * 		size_t request_data_size
- * 		size_t response_data_size
- * @param [out]: 
- * 		void * response_data 请求的返回结果
- * @return     : 
- * 		0:请求成功 !0:请求出错
- * @Author     : xuyuanbing
- * @Other      : 
- */
-
-int request(int file_descriptor, void * request_data, size_t request_data_size , size_t response_data_size, void * response_data)
-{
-	// 输入参的基本校验 忽 TODO 
-	int ret = -1;
-	do
-	{
-		ret = send(file_descriptor, (void *)request_data, request_data_size, 0);
-	} while (ret < 0 && EINTR == errno);
-
-	do
-	{
-		ret = recv(file_descriptor, (void *) response_data, response_data_size, 0);
-	} while (ret < 0 && EINTR == errno);
-	if( ret < 0 ){
-		perror(" send login model");
-		return ret;
-	}
-
-	return 0;
-}
 
 /*
  * description : 格式化添加用户数据, 发送添加用户请求, 接收处理结果
@@ -185,16 +181,49 @@ int sendAdminAddRequest(int file_descriptor, EmployeeCreateModel *create_model, 
 {
 	// 输入参的基本校验 忽 TODO 
 	int ret = -1;
-	ret = request(file_descriptor, (void *)create_data, sizeof(EmployeeCreateModel),
-			sizeof(EmployeeCreateResult), (void *)result);
+	RequestInfo req = {
+		.type = EmployeeAdd,
+		.size = sizeof(EmployeeCreateModel)
+	};
+	ResponseInfo res = {0};
+	
+	ret = request(file_descriptor, &req, sizeof(req), create_model, sizeof(EmployeeCreateModel),
+			 &res, sizeof(res), result, sizeof(EmployeeCreateResult));
+
 	return ret ;
-
-// 解析处理结果
-// 添加失败显示错误信息, Goto管理员菜单
-// 添加成功显示成功信息, Goto管理员菜单
-
 }
 
+/*
+ * description : 创建新员工成功后打印员工信息查询业务
+ * function    : 
+ * @param [ in]: 
+ * 		int file_descriptor
+ * 		LoginModel * login_model
+ * @param [out]: 
+ * @return     : 0:正常退出  !0:错误退出
+ * @Author     : xuyuanbing
+ * @Other      : 
+ */
+int employeeQueryBusiness(int file_descriptor, LoginModel * login_model)
+{
+	EmployeeQueryModel query_model = {0};
+	query_model.name  = login_model->name;
+	query_model.empno = login_model->empno;
+	EmployeeQueryResult query_Result = {0};
+
+    int ret = sendEmployeeQueryRequest(&query_model, &query_result);
+	if(ret){
+		return ret;
+	}
+	printf("******************************************\n");
+	printf("************** 姓名:%s\n", query_Result.name);
+	printf("************** 性别:%s\n", query_result.sex);
+	printf("************** 年龄:%d\n", query_result.age);
+	printf("************** 工资:%d\n", query_result.salary);
+	printf("************** 部门:%s\n", query_result.department);
+	
+	return ret;
+}
 
 /*
  * description : 交互获取用户信息(用户名)
@@ -230,12 +259,12 @@ int getEmployeeName(char * name, size_t size)
  */
 int getEmployeeNumber(uint *employee_number)
 {
-	char tmp [32] = [0];
+	char tmp [32] = {0};
 	printf("请输入员工的工号："); 
 	bzero(tmp, sizeof(tmp));
-	getDataFgets(temp, sizeof(tmp));
+	getDataFgets(tmp, sizeof(tmp));
 	*employee_number = (uint)atoi(tmp);
-	return 0
+	return 0;
 }
 
 /*
@@ -251,7 +280,8 @@ int getEmployeeNumber(uint *employee_number)
  * @Author     : xuyuanbing
  * @Other      : 
  */
-int sendEmployeeQueryRequest(int file_descriptor, EmployeeQueryModel * query_model, EmployeeQueryResult *query_Result)
+/**
+int sendEmployeeQueryRequest(int file_descriptor, EmployeeQueryModel * query_model, EmployeeQueryResult *query_result)
 {
 
 	// 输入参的基本校验 忽 TODO 
@@ -261,7 +291,8 @@ int sendEmployeeQueryRequest(int file_descriptor, EmployeeQueryModel * query_mod
 	return ret ;
 }
 
-        5.4: 格式化删除用户数据, 发送删除用户请求, 接收查询结果:::
+**/
+        // 5.4: 格式化删除用户数据, 发送删除用户请求, 接收查询结果:::
 /*
  * description : 发送删除用户请求, 接收查询结果
  * function    : 
@@ -279,39 +310,43 @@ int sendEmployeeDeleteRequest (int file_descriptor, EmployeeDeleteModel *delete_
 {
 	// 输入参的基本校验 忽 TODO 
 	int ret = -1;
+	/**
 	ret = request(file_descriptor, (void *)delete_model, sizeof(EmployeeDeleteModel),
 			sizeof(ResponseInfo), (void *)result);
+			**/
 	return ret ;
 // 解析处理结果
 // 删除失败显示错误信息, Goto管理员菜单
 // 删除成功显示成功信息, Goto管理员菜单
 }
 
-5.删除用户业务:::
+// 5.删除用户业务:::
 int adminDeleteBusiness(void)
 {
 // TODO int connectServer(char *ip, int port)
 	int file_descriptor = -1;
-  file_descriptor = connectServer(char *ip, int port);
+	
+	// file_descriptor = connectServer(char *ip, int port);
 
 	EmployeeQueryModel query_model;
 	EmployeeQueryResult query_Result;
 	EmployeeDeleteModel delete_model;
 	ResponseInfo result;
 	// TODO 这里所以的返回直我还每有测试过
-	getEmployeeName(query_model.name, sizeof(query_model))
-	getEmployeeNumber(&query_model.empno)
-	sendEmployeeQueryRequest(file_descriptor, &query_model, &query_Result);
+	 // getEmployeeName(query_model.name, sizeof(query_model))
+	getEmployeeNumber(&query_model.empno);
+	//sendEmployeeQueryRequest(file_descriptor, &query_model, &query_Result);
 	sendEmployeeDeleteRequest(file_descriptor, &delete_model, &result);
 	return 0;
 }
 
 
 
-6.修改用户业务:::
+// 6.修改用户业务:::
 int adminModifyBusiness(void)
 {
 // TODO int connectServer(char *ip, int port)
+/**
 	int file_descriptor = -1;
   file_descriptor = connectServer(char *ip, int port);
   
@@ -342,8 +377,8 @@ int adminModifyBusiness(void)
     6.6: 解析处理结果:::
         6.6.1: 修改失败显示错误信息, Goto管理员菜单
         6.6.2: 修改失败显示成功信息, Goto管理员菜单
-
-
+**/
+}
 
 
 /*
@@ -364,8 +399,10 @@ int sendAdminModifyRequest(int file_descriptor, EmployeeModifyModel*modify_model
 {
  	// 输入参的基本校验 忽 TODO 
 	int ret = -1;
+	/**
 	ret = request(file_descriptor, (void *)modify_model, sizeof(EmployeeModifyModel),
 			sizeof(EmployeeQueryResult), (void *)modify_result);
+			**/
 	return ret ;
 // 解析处理结果:::
 // 修改失败显示错误信息, Goto管理员菜单
@@ -384,7 +421,7 @@ int sendAdminModifyRequest(int file_descriptor, EmployeeModifyModel*modify_model
  * @Author     : xuyuanbing
  * @Other      : 
  */
-int getEmployeeNewinfo(EmployeeModifyModel *modif_model)
+int getEmployeeNewinfo(EmployeeModifyModel *modify_model)
 {
 	// TODO create_model 中的 token 没有处理
 	char tmp [20] = {0};
@@ -401,31 +438,31 @@ int getEmployeeNewinfo(EmployeeModifyModel *modif_model)
 		printf("请输入员工的姓名：");
 		bzero(tmp, sizeof(tmp));
 		getDataFgets(tmp, sizeof(tmp));
-		strncpy(modify_model->name, tmp, sizeof(modiyf_model->name) - 1);
+		strncpy(modify_model->name, tmp, sizeof(modify_model->name) - 1);
 		break;
 	case 2:
 		printf("请输入员工的密码：");
 		bzero(tmp, sizeof(tmp));
 		getDataFgets(tmp, sizeof(tmp));
-		strncpy(modify_model->pwd, tmp, sizeof(modely_model->pwd) - 1);
+		strncpy(modify_model->pwd, tmp, sizeof(modify_model->pwd) - 1);
 		break;
 	case 3:
 		printf("请输入员工的性别："); 
 		bzero(tmp, sizeof(tmp));
 		getDataFgets(tmp, sizeof(tmp));
-		modify_model.sex = (ucahr) atoi(tmp);
+		modify_model->sex = (uchar) atoi(tmp);
 		break;
 	case 4:
 		printf("请输入员工的年龄："); 
 		bzero(tmp, sizeof(tmp));
 		getDataFgets(tmp, sizeof(tmp));
-		modify_model.age = (uchar) atoi(tmp);
+		modify_model->age = (uchar) atoi(tmp);
 		break;
 	case 5:
 		printf("请输入员工的工资："); 
 		bzero(tmp, sizeof(tmp));
 		getDataFgets(tmp, sizeof(tmp));
-		modify_model.salary = (uint) atoi(tmp);
+		modify_model->salary = (uint) atoi(tmp);
 		break;
 	case 6:
 		printf("请输入员工的部门："); 
@@ -452,7 +489,7 @@ int getEmployeeNewinfo(EmployeeModifyModel *modif_model)
 
 
 
-
+/**
 
 	
 7.查询用户业务:::
@@ -489,3 +526,4 @@ int admin_quit_business(void);
            返回值: 0:成功 !0:出错
             9.1.1.2: 解析结果, 出错显示错误, 成功Goto首页菜单
         9.1.2: no: Goto普通用户菜单
+		**/

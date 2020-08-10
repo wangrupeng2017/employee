@@ -31,6 +31,7 @@ int main(int argc, const char *argv[])
 			doEmployeeBusiness(fd, &login_result);
 		}else{
 			// 管理员的操作
+			doAdminBusiness(fd, &login_result);
 		}
 		bzero(&login_model, sizeof(LoginModel));
 		bzero(&login_result, sizeof(LoginResultModel));
