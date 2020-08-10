@@ -84,7 +84,7 @@ int getHomeMenuChoose(void)
 	char choose = -1;
 	printf("请输入您需要的服务：");
 	while(!(choose = getchar()));
-	
+	while(getchar() != '\n'); //去掉空格
 	return choose - '0';
 }
 
@@ -104,7 +104,6 @@ int getLoginModel(LoginModel *model)
 {
 	char word[32] = {0};
 	
-	fgets(word, sizeof(word), stdin);
 	memset(word, 0, sizeof(word));
 	printf("请输入您的用户名：");
 	getDataFgets(word, sizeof(word));
@@ -185,9 +184,9 @@ int request(int file_descriptor, void * request_head,
 	TRY_PERROR(ret == FuncException, "接收请求头数据");
 	ResponseInfo * response_info = response_head;
 
-	if(response_info->result == Success){
+	if((response_info->result == Success) && (response_info->size > 0)){
 		// 接受返回的数据
-		ret = recv(file_descriptor, response_data, response_data_size, 0);
+		ret = recv(file_descriptor, response_data, response_info->size, 0);
 		TRY_PERROR(ret == FuncException, "接收请求数据");
 	}
 

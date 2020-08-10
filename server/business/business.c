@@ -30,7 +30,7 @@
  * @return      0:处理成功 !0:处理出错
  */
 int loginHandler(int sockfd, RequestInfo *info)
-{
+{/*{{{*/
 	LoginModel model   = {0};
 	EmployeeInfo einfo = {0};
 	LoginResultModel result = {0};
@@ -68,7 +68,7 @@ LOGIN_FAILE_LABEL:
 	strcpy(res.message, "用户名或密码错误");	
 	ret = responseMessage(sockfd, &res, NULL); 
 	return ret;
-}
+}/*}}}*/
 
 /*
  * function:    quitHandler
@@ -198,7 +198,7 @@ SERVER_ERR_LABEL:
  * @return      0:处理成功 !0:处理出错
  */
 int employeeAddHandler(int sockfd, RequestInfo *info)
-{
+{/*{{{*/
 	EmployeeCreateModel model = {0};
 	ResponseInfo res = {
 		.type    = info->type,
@@ -237,7 +237,7 @@ int employeeAddHandler(int sockfd, RequestInfo *info)
 SERVER_ERR_LABEL:
 	strcpy(res.message, "服务错误");	
 	return responseMessage(sockfd, &res, NULL); 
-}
+}/*}}}*/
 
 /*
  * function:    employeeDeleteHandler
@@ -314,4 +314,83 @@ SERVER_ERR_LABEL:
 	return responseMessage(sockfd, &res, NULL); 
 }
 
+/*
+ * function:    signInHandler
+ * description: 员工签到处理函数
+ * @param [ in] 
+ * 	 sockfd   : 客户端sockfd
+ * 	 info     : 请求头信息
+ * @return      0:处理成功 !0:处理出错
+ */
+int signInHandler(int sockfd, RequestInfo *info)
+{
+	ResponseInfo res = {
+		.type    = info->type,
+		.size    = 0,
+		.result  = Failed,
+		.message = ""
+	};
+
+	// 从登录信息取出员工号
+	int empno = checkLoginStateInfo(sockfd);
+	if (empno < 0) return FuncError;
+	
+	// 查询签到信息
+	int signin_status;
+	int ret = checkSigninInfo(empno, &signin_status);
+	if (ret < 0) return FuncError;
+	if (signin_status) goto Already_SignIn_Label;
+	
+	// 新增签到信息
+	ret = createSigninInfo(empno);
+	if (ret < 0) goto SERVER_ERR_LABEL;
+	
+	// 返回签到成功结果
+	res.result = Success;
+	strcpy(res.message, "签到成功");
+	return responseMessage(sockfd, &res, NULL); 
+
+Already_SignIn_Label:
+	strcpy(res.message, "您已签到，无法重复签到");
+	return responseMessage(sockfd, &res, NULL); 
+SERVER_ERR_LABEL:
+	strcpy(res.message, "服务错误");	
+	return responseMessage(sockfd, &res, NULL); 
+
+}
+
+/*
+ * function:    signInInfoHandler
+ * description: 查询签到信息处理函数
+ * @param [ in] 
+ * 	 sockfd   : 客户端sockfd
+ * 	 info     : 请求头信息
+ * @return      0:处理成功 !0:处理出错
+ */
+int signInInfoHandler(int sockfd, RequestInfo *info)
+{
+	ResponseInfo res = {
+		.type    = info->type,
+		.size    = 0,
+		.result  = Failed,
+		.message = ""
+	};
+	
+	// 从登录信息取出员工号
+	int empno = checkLoginStateInfo(sockfd);
+	if (empno < 0) return FuncError;
+
+	char message[100] = "";
+	int ret = querySigninInfo(empno, message);
+	if (ret < 0) goto SERVER_ERR_LABEL;
+
+	// 返回签到成功结果
+	res.result = Success;
+	strcpy(res.message, message);
+	return responseMessage(sockfd, &res, NULL); 
+
+SERVER_ERR_LABEL:
+	strcpy(res.message, "服务错误");	
+	return responseMessage(sockfd, &res, NULL); 
+}
 

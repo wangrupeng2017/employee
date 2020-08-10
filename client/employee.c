@@ -91,7 +91,7 @@ int gotoEmployeeChoose(int file_descriptor, int userChoose, LoginResultModel * l
  * @Other      : 
  */
 int employeeQueryBusiness(int file_descriptor, LoginResultModel * login_model)
-{
+{/*{{{*/
 	EmployeeQueryModel query_model = {0};
 	strncpy(query_model.name, login_model->name, sizeof(query_model.name));
 	query_model.empno = login_model->empno;
@@ -103,13 +103,13 @@ int employeeQueryBusiness(int file_descriptor, LoginResultModel * login_model)
 	}
 	printf("******************************************\n");
 	printf("************** 姓名:%s\n", query_result.name);
-	printf("************** 性别:%c\n", query_result.sex);
-	printf("************** 年龄:%c\n", query_result.age);
+	printf("************** 性别:%s\n", query_result.sex==Male?"男":"女");
+	printf("************** 年龄:%d\n", query_result.age);
 	printf("************** 工资:%d\n", query_result.salary);
 	printf("************** 部门:%s\n", query_result.department);
 	
 	return ret;
-}
+}/*}}}*/
 
 /*
  * description : 发送信息查询请求, 接收查询结果
@@ -125,17 +125,17 @@ int employeeQueryBusiness(int file_descriptor, LoginResultModel * login_model)
  */
 int sendEmployeeQueryRequest(int file_descriptor, EmployeeQueryModel* query_model,
 		EmployeeQueryResult *query_Result)
-{
+{/*{{{*/
 	int ret = -1;
 	RequestInfo req = {
 		.type = EmployeeQuery,
 		.size = sizeof(EmployeeQueryModel)
 	};
 	ResponseInfo res = {0};
-	ret = request(file_descriptor,&req, sizeof(req), &query_model, sizeof(EmployeeQueryModel),
+	ret = request(file_descriptor,&req, sizeof(req), query_model, sizeof(EmployeeQueryModel),
 			&res, sizeof(res), query_Result, sizeof(EmployeeQueryResult));
 	return ret;
-}
+}/*}}}*/
 
 /*
  * description : 普通员工信息修改业务
@@ -208,7 +208,7 @@ int sendEmployeeModifyRequest(int file_descriptor, EmployeeModifyModel*model)
 	
 	ResponseInfo res = {0};
 	EmployeeQueryResult res_model = {0};
-	int ret = request(file_descriptor, &req, sizeof(req), &model, sizeof(EmployeeModifyModel),
+	int ret = request(file_descriptor, &req, sizeof(req), model, sizeof(EmployeeModifyModel),
 			&res, sizeof(res), &res_model, sizeof(res_model)); 
 	return ret;
 }
@@ -230,7 +230,7 @@ int employeeQuitBusiness(int file_descriptor, LoginResultModel *login_model)
 	char temp [12] = {0};
 	fgets(temp, sizeof(temp), stdin);
 	// 用户不退去了
-	if(!strncasecmp(temp, YES, strlen(YES))){
+	if(strncasecmp(temp, YES, strlen(YES))){
 		return FuncException;
 	}
 
