@@ -184,7 +184,13 @@ int getEmployeeModifyModel(EmployeeModifyModel*model)
 	printf("请输入员工的性别："); 
 	bzero(tmp, sizeof(tmp));
 	getDataFgets(tmp, sizeof(tmp));
-	model->sex = (uchar) atoi(tmp);
+
+	if(strncmp(tmp, STR_MALE, sizeof(STR_MALE))){
+		model->sex = Female;
+	}else{
+		model->sex = Male;
+	}
+
 	printf("请输入员工的年龄："); 
 	bzero(tmp, sizeof(tmp));
 	getDataFgets(tmp, sizeof(tmp));
@@ -271,6 +277,8 @@ int signinemployee(int file_descriptor, LoginResultModel * login_model)
 			&res, sizeof(res), &res_model, sizeof(res_model));
 	if( ret ){
 		printf("%s\n", res.message);
+	}else{
+		printf("签到成功\n");
 	}
 	return ret;
 }

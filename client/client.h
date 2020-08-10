@@ -11,7 +11,8 @@
 #include "../common/socket_models.h"
 
 #define YES "yes"
-
+#define STR_MALE "男"
+#define STR_FEMALE "女"
 
 /*
  * Description 		: 连接socket服务器

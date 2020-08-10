@@ -28,8 +28,6 @@ int doAdminBusiness(int file_descriptor, LoginResultModel * login_model)
 		ret = gotoAdminChoose(file_descriptor, getAdminMenuChoose(), login_model);
 	} while (ret);
 
-	printf("%s:%s:%d\n", __FILE__, __func__, __LINE__);
-	printf("ret = %d\n", ret);
 	return ret;
 }
 
@@ -152,9 +150,9 @@ int getAdminAddModel(EmployeeCreateModel * create_model)
 	getDataFgets(tmp, sizeof(tmp));
 
 	if(strncmp(tmp, STR_MALE, sizeof(STR_MALE))){
-		create_model->sex = Male;
-	}else{
 		create_model->sex = Female;
+	}else{
+		create_model->sex = Male;
 	}
 
 	printf("请输入员工的年龄："); 
