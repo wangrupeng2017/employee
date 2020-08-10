@@ -28,6 +28,8 @@ int doAdminBusiness(int file_descriptor, LoginResultModel * login_model)
 		ret = gotoAdminChoose(file_descriptor, getAdminMenuChoose(), login_model);
 	} while (ret);
 
+	printf("%s:%s:%d\n", __FILE__, __func__, __LINE__);
+	printf("ret = %d\n", ret);
 	return ret;
 }
 
@@ -57,18 +59,19 @@ int gotoAdminChoose(int file_descriptor, int userChoose, LoginResultModel * logi
 		adminAddBusiness(file_descriptor, login_model);
 		break;
 	case 2:
-
+		adminDeleteBusiness(file_descriptor, login_model);
 		break;
 	case 3:
 		adminQueryBusiness(file_descriptor, login_model);
 		break;
 	case 4:
+		adminModifyBusiness(file_descriptor, login_model);
 		break;
 	case 5:
 		adminQueryLogsBusiness(file_descriptor, login_model);
 		break;
 	case 0:
-		ret = employeeQuitBusiness(file_descriptor, login_model);
+	ret = employeeQuitBusiness(file_descriptor, login_model);
 		break;
 	default :
 		break;
@@ -132,7 +135,8 @@ int adminAddBusiness(int file_descriptor, LoginResultModel * login_model)
  * @Other      : 
  */
 int getAdminAddModel(EmployeeCreateModel * create_model)
-{
+{ /*{{{*/
+
 	// TODO create_model 中的 token 没有处理
 	char tmp [20] = {0};
 	printf("请输入员工的姓名：");
@@ -166,7 +170,7 @@ int getAdminAddModel(EmployeeCreateModel * create_model)
 	getDataFgets(tmp, sizeof(tmp));
 	strncpy(create_model->department, tmp, sizeof(create_model->department) - 1);
 	return 0;
-}
+}/*}}}*/
 
 
 /*
@@ -195,16 +199,109 @@ int sendAdminAddRequest(int file_descriptor, EmployeeCreateModel *create_model, 
 	ret = request(file_descriptor, &req, sizeof(req), create_model, sizeof(EmployeeCreateModel),
 			 &res, sizeof(res), result, sizeof(EmployeeCreateResult));
 
-
-	printf("******************************************\n");
-	printf("************** 姓名:%s\n", result->name);
-	printf("************** 性别:%s\n", result->pwd);
-	printf("************** 年龄:%d\n\n", result->empno);
+	if( ret ){
+		printf("%s\n", res.message);
+	}else{
+		printf("******************************************\n");
+		printf("************** 姓名:%s\n", result->name);
+		printf("************** 性别:%s\n", result->pwd);
+		printf("************** 年龄:%d\n\n", result->empno);
+	}
 
 	return ret ;
 }
 
+/*
+ * description : 删除用户业务
+ * function    : 
+ * @param [ in]: int file_descriptor 
+ * 		LoginResultModel * login_model
+ * @param [out]: 
+ * @return     : 
+ * @Author     : xuyuanbing
+ * @Other      : 
+ */
+int adminDeleteBusiness(int file_descriptor, LoginResultModel * login_model)
+{
+	EmployeeDeleteModel delete_model = {0};
 
+	getEmployeeNumber(&delete_model.empno);
+	printf("%s:%s:%d\n", __FILE__, __func__, __LINE__);
+	return sendEmployeeDeleteRequest(file_descriptor, &delete_model);
+}
+
+
+/*
+ * description : 交互获取用户选择的用户员工号
+ * function    : 
+ * @param [ in]: 
+ * 		sdtio
+ * @param [out]: 
+ *   	int *employee_number 员工号
+ * @return     : 
+ *   0:信息获取成功 !0:获取错误或用户取消操作
+ * @Author     : xuyuanbing
+ * @Other      : 
+ */
+void getEmployeeNumber(uint *employee_number)
+{
+	char tmp [32] = {0};
+	printf("请输入员工的工号："); 
+	bzero(tmp, sizeof(tmp));
+	getDataFgets(tmp, sizeof(tmp));
+	*employee_number = (uint)atoi(tmp);
+}
+
+/*
+ * description : 发送删除用户请求, 接收查询结果
+ * function    : 
+ * @param [ in]: 
+ *  	int file_descriptor
+ *  	EmployeeDeleteModel *delete_model 删除信息
+ * @param [out]: 
+ * @return     : 
+ * @Author     : xuyuanbing
+ * @Other      : 
+ */
+int sendEmployeeDeleteRequest (int file_descriptor, EmployeeDeleteModel *delete_model)
+{
+	RequestInfo req = {
+		.type = EmployeeDelete,
+		.size = sizeof(EmployeeDeleteModel)
+	};
+	
+	ResponseInfo res = {0};
+	EmployeeCreateResult res_model = {0};
+	// 输入参的基本校验 忽 TODO 
+	int ret = -1;
+	ret = request(file_descriptor, &req, sizeof(req), delete_model, sizeof(EmployeeDeleteModel),
+			&res, sizeof(ResponseInfo), &res_model, sizeof(res_model));
+	if( ret ){
+		printf("%s\n", res.message);
+	}
+	return ret ;
+}
+
+
+
+
+
+// 6.修改用户业务:::
+int adminModifyBusiness(int file_descriptor, LoginResultModel *login_model)
+{
+	EmployeeQueryModel  query_model = {0};
+	getEmployeeName(query_model.name, sizeof(query_model.name));
+	int ret = sendAdminEmployeeQueryRequest(file_descriptor, &query_model);
+	if( ret ){
+		return ret;
+	}
+
+	EmployeeModifyModel modify_model = {0};
+	getEmployeeNumber(&modify_model.empno);
+	getEmployeeNewinfo(&modify_model);
+	ret = sendAdminModifyRequest(file_descriptor, &modify_model);
+	return ret ;
+}
 
 /*
  * description : 交互获取用户信息(用户名)
@@ -226,169 +323,38 @@ int getEmployeeName(char * name, size_t size)
 	return 0;
 }
 
-/*
- * description : 交互获取用户选择的用户员工号
- * function    : 
- * @param [ in]: 
- * 		sdtio
- * @param [out]: 
- *   	int *employee_number 员工号
- * @return     : 
- *   0:信息获取成功 !0:获取错误或用户取消操作
- * @Author     : xuyuanbing
- * @Other      : 
- */
-int getEmployeeNumber(uint *employee_number)
+int sendAdminEmployeeQueryRequest(int file_descriptor, EmployeeQueryModel *req_data)
 {
-	char tmp [32] = {0};
-	printf("请输入员工的工号："); 
-	bzero(tmp, sizeof(tmp));
-	getDataFgets(tmp, sizeof(tmp));
-	*employee_number = (uint)atoi(tmp);
-	return 0;
-}
+	int ret = 0;
+	RequestInfo         req_head = {0};
+	ResponseInfo        res_head = {0};
+	EmployeeQueryResult res_data[20] = {0};
+	req_head.type = EmployeeQuery;
+	req_head.size = sizeof(req_data);
 
-/*
- * description : 发送信息查询请求, 接收查询结果
- * function    : 
- * @param [ in]: 
- *  	int file_descriptor
- *  	EmployeeQueryModel * query_model 查询信息
- * @param [out]: 
- *  	 EmployeeQueryResult *query_Result 查询结果
- * @return     : 
- *  	0:发送请求成功 !0:发送请求出错
- * @Author     : xuyuanbing
- * @Other      : 
- */
-/**
-int sendEmployeeQueryRequest(int file_descriptor, EmployeeQueryModel * query_model, EmployeeQueryResult *query_result)
-{
+	// 发送查询请求
+	ret = request(file_descriptor, 
+			&req_head, sizeof(req_head), req_data, sizeof(EmployeeQueryModel),
+			&res_head, sizeof(res_head), res_data, sizeof(res_data));
 
-	// 输入参的基本校验 忽 TODO 
-	int ret = -1;
-	ret = request(file_descriptor, (void *)query_model, sizeof(EmployeeQueryModel),
-			sizeof(EmployeeQueryResult), (void *)query_result);
-	return ret ;
-}
+	// 查询结果员工数量
+	int employee_count = res_head.size/sizeof(EmployeeQueryResult);
+	if (employee_count == 0){
+		printf("未查询到指定条件的员工信息, 请换个条件试一试\n");
+		return FuncException;
+	}
 
-**/
-        // 5.4: 格式化删除用户数据, 发送删除用户请求, 接收查询结果:::
-/*
- * description : 发送删除用户请求, 接收查询结果
- * function    : 
- * @param [ in]: 
- *  	int file_descriptor
- *  	EmployeeDeleteModel *delete_model 删除信息
- * @param [out]: 
- * 		ResponseInfo *result 请求结果
- * @return     : 
- * @Author     : xuyuanbing
- * @Other      : 
- */
-int sendEmployeeDeleteRequest (int file_descriptor, EmployeeDeleteModel *delete_model,
-		ResponseInfo *result)
-{
-	// 输入参的基本校验 忽 TODO 
-	int ret = -1;
-	/**
-	ret = request(file_descriptor, (void *)delete_model, sizeof(EmployeeDeleteModel),
-			sizeof(ResponseInfo), (void *)result);
-			**/
-	return ret ;
-// 解析处理结果
-// 删除失败显示错误信息, Goto管理员菜单
-// 删除成功显示成功信息, Goto管理员菜单
-}
+	// 打印员工信息
+	int i = 0;
+	for (i=0; i<employee_count; i++)
+	{
+		EmployeeQueryResult e = res_data[i];
+		printf("[%d]\t%d\t%s\t%s\t%s\t%d\t%d\t%s\n", 
+				i+1, e.empno, e.name, e.pwd, e.sex==Male?"男":"女",
+				e.age, e.salary, e.department);
+	}
 
-// 5.删除用户业务:::
-int adminDeleteBusiness(void)
-{
-// TODO int connectServer(char *ip, int port)
-	int file_descriptor = -1;
-	
-	// file_descriptor = connectServer(char *ip, int port);
-
-	EmployeeQueryModel query_model;
-	EmployeeQueryResult query_Result;
-	EmployeeDeleteModel delete_model;
-	ResponseInfo result;
-	// TODO 这里所以的返回直我还每有测试过
-	 // getEmployeeName(query_model.name, sizeof(query_model))
-	getEmployeeNumber(&query_model.empno);
-	//sendEmployeeQueryRequest(file_descriptor, &query_model, &query_Result);
-	sendEmployeeDeleteRequest(file_descriptor, &delete_model, &result);
-	return 0;
-}
-
-
-
-// 6.修改用户业务:::
-int adminModifyBusiness(void)
-{
-// TODO int connectServer(char *ip, int port)
-/**
-	int file_descriptor = -1;
-  file_descriptor = connectServer(char *ip, int port);
-  
-	EmployeeQueryModel query_model;
-	EmployeeQueryResult query_Result;
-	EmployeeModifyModel modify_model;
-	ResponseInfo result;
-	// TODO 这里所以的返回直我还每有测试过
-	// 
-	getEmployeeName(query_model.name, sizeof(query_model))
-	sendEmployeeQueryRequest(file_descriptor, &query_model, &query_Result);
-	// TODO ====== 这里需要 打印根据用户名查询到的所以数据供用户选择
-	//
-	//
-	//
-	getEmployeeNumber(&query_model.empno)
-	// TODO 这个方法不用写了， 用 之前的方法
-    	
-    //  交互获取用户信息 用户名/密码/性别/年龄/部门/工资
-	//  TODO 返回直没有判断
-    getEmployeeNewinfo(&modify_model);
-
-    6.5: 格式化信息修改数据, 发送信息修改请求, 接收处理结果:::
-    EmployeeQueryResult modify_result;
-    sendAdminModifyRequest(file_descriptor, &modify_model, struct EmployeeQueryResult *out);
-    参数: @model:查询信息 @out:查询结果
-    返回值: 0:发送请求成功 !0:发送请求出错
-    6.6: 解析处理结果:::
-        6.6.1: 修改失败显示错误信息, Goto管理员菜单
-        6.6.2: 修改失败显示成功信息, Goto管理员菜单
-**/
-}
-
-
-/*
- * description : 格式化信息修改数据, 发送信息修改请求, 接收处理结果
- * function    : 
- * @param [ in]: 
- *  	int file_descriptor
- *  	EmployeeModifyModel*modify_model 修改的信息
- * @param [out]: 
- *  	EmployeeQueryResult *modiy_result 发送请求成功后返回的数据
- * @return     : 
- * 		0:发送请求成功 !0:发送请求出错
- * @Author     : xuyuanbing
- * @Other      : 
- */
-int sendAdminModifyRequest(int file_descriptor, EmployeeModifyModel*modify_model, 
-		EmployeeQueryResult *modify_result)
-{
- 	// 输入参的基本校验 忽 TODO 
-	int ret = -1;
-	/**
-	ret = request(file_descriptor, (void *)modify_model, sizeof(EmployeeModifyModel),
-			sizeof(EmployeeQueryResult), (void *)modify_result);
-			**/
-	return ret ;
-// 解析处理结果:::
-// 修改失败显示错误信息, Goto管理员菜单
-// 修改失败显示成功信息, Goto管理员菜单
-
+	return FuncNormal;
 }
 
 /*
@@ -461,50 +427,33 @@ int getEmployeeNewinfo(EmployeeModifyModel *modify_model)
 }
 
 
+/*
+ * description : 格式化信息修改数据, 发送信息修改请求, 接收处理结果
+ * function    : 
+ * @param [ in]: 
+ * 		int file_descriptor
+ * 		EmployeeModifyModel*model
+ * @param [out]: 
+ * @return     : 0:修改成功 !0:修改出错
+ * @Author     : xuyuanbing
+ * @Other      : 
+ */
 
-
-
-
-
-
-
-
-
-/**
-
+int sendAdminModifyRequest(int file_descriptor, EmployeeModifyModel *modify_model)
+{
+	RequestInfo req = {
+		.type = EmployeeModify,
+		.size = sizeof(EmployeeModifyModel)
+	};
 	
-7.查询用户业务:::
-int admin_query_business(void);
-    7.1: 交互获取用户信息(用户名):::
-    int get_employee_name(char name[20]);
-    参数: @name:用户名
-    返回值: 0:信息获取成功 !0:获取错误或用户取消操作
-    7.2: 格式化信息查询数据, 发送信息查询请求, 接收查询结果:::
-    int send_admin_query_request(struct EmployeeQueryModel*model, struct EmployeeQueryResult *out);
-    参数: @model:查询信息 @out:查询结果
-    返回值: 0:发送请求成功 !0:发送请求出错
-    7.3: 打印员工信息, Goto管理员菜单
+	ResponseInfo res = {0};
+	EmployeeQueryResult res_model = {0};
+	int ret = request(file_descriptor, &req, sizeof(req), modify_model, sizeof(EmployeeModifyModel),
+			&res, sizeof(res), &res_model, sizeof(res_model)); 
+	if( ret ){
+		printf("%s\n", res.message);
+	}
 
-8.日志查询业务:::
-int admin_query_logs_business(void);
-    8.1: 交互获取查询日期(默认填充当天日期):::
-    int get_log_date(char date[20]);
-    参数: @date:时间
-    返回值: 0:信息获取成功 !0:获取错误或用户取消操作
-    8.2: 格式化日志查询数据, 发送日志查询请求, 接收查询结果:::
-    int send_admin_query_logs_request(struct OperationLogModel*model, struct OperationLogResult*out);
-    参数: @model:查询信息 @out:查询结果
-    返回值: 0:发送请求成功 !0:发送请求出错
-    8.3: 打印日志信息, Goto管理员菜单
+	return ret;
+}
 
-9.普通员工退出业务:::
-int admin_quit_business(void);
-    9.1: 二次确认退出(默认yes):::
-        9.1.1: yes: Goto首页菜单
-            9.1.1.1: 格式化退出请求信息, 发送退出请求:::
-            int send_quit_request(struct QuitModel *model,  struct ResponseInfo*out);
-           参数: @model:退出信息  @out:退出结果
-           返回值: 0:成功 !0:出错
-            9.1.1.2: 解析结果, 出错显示错误, 成功Goto首页菜单
-        9.1.2: no: Goto普通用户菜单
-		**/
