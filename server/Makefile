@@ -8,8 +8,6 @@ Includes=-I./store -I./network -I./business -I./iopoll -I../common/
 main:$(Objs) main.c
 	$(CC) main.c $(Objs) -o $@ -l $(Libs) $(Includes)
 
-client:$(Objs) client.c
-	$(CC) client.c $(Objs) -o $@ -l $(Libs) $(Includes)
 
 clean:
-	rm main client
+	rm main

@@ -46,6 +46,10 @@ int initSQL(sqlite3 **out)
 	ret = sqlite3_exec(db_instance, INSERT_ADMIN_DATA, NULL, NULL, NULL);
 	TRY_SQLITE_ERROR(ret!=SQLITE_OK, "添加管理员:", db_instance, return FuncError);
 
+	// 添加普通员工帐号
+	ret = sqlite3_exec(db_instance, INSERT_TEST_DATA, NULL, NULL, NULL);
+	TRY_SQLITE_ERROR(ret!=SQLITE_OK, "添加普通员工:", db_instance, return FuncError);
+
 	*out = db_instance;
 	return FuncNormal;
 }
