@@ -22,21 +22,26 @@ int main(int argc, const char *argv[])
 	fd = connectServer(SERVER_IP, SERVER_PORT);
 	TRY_ERROR(fd < 0,"连接服务器失败");
 
-	LoginResultModel login_result = {0};
-	LoginModel login_model = {0};
-	do{
-		ret = loginBusiness(fd, &login_model, &login_result);
-		if(login_result.role == EmployeeRole){
-			// 普通用户的操作
-			doEmployeeBusiness(fd, &login_result);
-		}else{
-			// 管理员的操作
-			doAdminBusiness(fd, &login_result);
-		}
-		bzero(&login_model, sizeof(LoginModel));
-		bzero(&login_result, sizeof(LoginResultModel));
-	} while (ret);
-	
-	close(fd);
-	return FuncNormal;
+	LoginResultModel login_result;
+	LoginModel login_model;
+loop_menu_label:
+	bzero(&login_model, sizeof(LoginModel));
+	bzero(&login_result, sizeof(LoginResultModel));
+	ret = loginBusiness(fd, &login_model, &login_result);// 这里面直接就exit()
+
+	if( ret ) goto loop_menu_label;
+
+	switch(login_result.role){
+	case EmployeeRole:
+		doEmployeeBusiness(fd, &login_result);
+		break;
+	case AdminRole:
+		doAdminBusiness(fd, &login_result);
+		break;
+	default :
+		close(fd);
+		exit(FuncException);
+	}
+	goto loop_menu_label;
+
 }

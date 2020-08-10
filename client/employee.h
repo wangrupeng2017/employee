@@ -114,4 +114,15 @@ int getEmployeeModifyModel(EmployeeModifyModel*model);
  */
 int sendEmployeeModifyRequest(int file_descriptor, EmployeeModifyModel*model);
 
+/*
+ * description : 员工打卡
+ * function    : 
+ * @param [ in]: 
+ * @param [out]: 
+ * @return     : 
+ * @Author     : xuyuanbing
+ * @Other      : 
+ */
+int signinemployee(int file_descriptor, LoginResultModel * login_model);
+
 #endif /* __EMPLOYEE_H__ */

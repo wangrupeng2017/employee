@@ -44,7 +44,7 @@ int doEmployeeBusiness(int file_descriptor, LoginResultModel * login_model)
 void showEmployeeMenu(void)
 {
 	printf("********************  很高兴为您服务  **********************\n");
-	printf("**************  1:信息查询  2:信息修改 0:退出 **************\n");
+	printf("**************  1:信息查询  2:信息修改 3:签到 0:退出 *******\n");
 	printf("************************************************************\n");
 }
 
@@ -68,6 +68,9 @@ int gotoEmployeeChoose(int file_descriptor, int userChoose, LoginResultModel * l
 		break;
 	case 2:
 		employeeModifyBusiness(file_descriptor, login_model);
+		break;
+	case 3:
+		signinemployee(file_descriptor, login_model);
 		break;
 	case 0:
 		ret = employeeQuitBusiness(file_descriptor, login_model);
@@ -97,7 +100,7 @@ int employeeQueryBusiness(int file_descriptor, LoginResultModel * login_model)
 	query_model.empno = login_model->empno;
 	EmployeeQueryResult query_result = {0};
 
-    int ret = sendEmployeeQueryRequest(file_descriptor, &query_model, &query_result);
+	int ret = sendEmployeeQueryRequest(file_descriptor, &query_model, &query_result);
 	if(ret){
 		return ret;
 	}
@@ -107,7 +110,8 @@ int employeeQueryBusiness(int file_descriptor, LoginResultModel * login_model)
 	printf("************** 年龄:%d\n", query_result.age);
 	printf("************** 工资:%d\n", query_result.salary);
 	printf("************** 部门:%s\n", query_result.department);
-	
+	printf("************** 工号:%d\n", query_result.empno);
+
 	return ret;
 }
 
@@ -205,7 +209,7 @@ int sendEmployeeModifyRequest(int file_descriptor, EmployeeModifyModel*model)
 		.type = EmployeeModify,
 		.size = sizeof(EmployeeModifyModel)
 	};
-	
+
 	ResponseInfo res = {0};
 	EmployeeQueryResult res_model = {0};
 	int ret = request(file_descriptor, &req, sizeof(req), model, sizeof(EmployeeModifyModel),
@@ -213,4 +217,60 @@ int sendEmployeeModifyRequest(int file_descriptor, EmployeeModifyModel*model)
 	return ret;
 }
 
+/*
+ * description : 员工打卡
+ * function    : 
+ * @param [ in]: 
+ * @param [out]: 
+ * @return     : 
+ * @Author     : xuyuanbing
+ * @Other      : 
+ */
+int signInEmployee(int file_descriptor, LoginResultModel * login_model)
+{
+	RequestInfo req = {
+		.type = SignIn,
+		.size = sizeof(LoginResultModel)
+	};
+	EmployeeDeleteModel model = {
+		.empno = 2
+	};
+	ResponseInfo res = {0};
+	LoginResultModel res_model = {0};
 
+	int ret = request(file_descriptor, &req, sizeof(req), login_model, sizeof(LoginResultModel),
+			&res, sizeof(res), &res_model, sizeof(res_model));
+	if( ret ){
+		printf("%s\n", res.message);
+	}
+	return ret;
+}
+
+/*
+ * description : 员工打卡
+ * function    : 
+ * @param [ in]: 
+ * @param [out]: 
+ * @return     : 
+ * @Author     : xuyuanbing
+ * @Other      : 
+ */
+int signinemployee(int file_descriptor, LoginResultModel * login_model)
+{
+	RequestInfo req = {
+		.type = SignIn,
+		.size = sizeof(LoginResultModel)
+	};
+	EmployeeDeleteModel model = {
+		.empno = 2
+	};
+	ResponseInfo res = {0};
+	LoginResultModel res_model = {0};
+
+	int ret = request(file_descriptor, &req, sizeof(req), login_model, sizeof(LoginResultModel),
+			&res, sizeof(res), &res_model, sizeof(res_model));
+	if( ret ){
+		printf("%s\n", res.message);
+	}
+	return ret;
+}
