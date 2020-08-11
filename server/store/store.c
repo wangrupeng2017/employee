@@ -211,7 +211,7 @@ int queryEmployeeInfo(uint empno, ename_t name, EmployeeInfo info[QUERY_EMPLOYEE
 					    FROM employee WHERE %s  LIMIT 20;";
 	
 	char condition[100] = "";
-	(empno > 0) ? sprintf(condition, "no='%d'", empno) : sprintf(condition, "name='%s'", name);
+	(empno > 0) ? sprintf(condition, "no='%d'", empno) : sprintf(condition, "name like '%%%s%%'", name);
 	sprintf(sql, sql_format, condition);
 
 	int ret = sqlite3_get_table(db_instance, sql, &result, &nRow, &nColumn, &pzErrmsg);
