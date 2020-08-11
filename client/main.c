@@ -1,7 +1,7 @@
 
 #include "employee.h"
 #include <stdlib.h>
-#define SERVER_IP "192.168.1.103"
+#define SERVER_IP "127.0.0.1"
 #define SERVER_PORT 9999
 
 /*
@@ -18,8 +18,12 @@ int main(int argc, const char *argv[])
 
 	int ret = -1;
 	int fd;
+	if( argc > 3 || argc == 3 ){
+		fd = connectServer(argv[1], atoi(argv[2]));
+	}else{
+		fd = connectServer(SERVER_IP, SERVER_PORT);
+	}
 
-	fd = connectServer(SERVER_IP, SERVER_PORT);
 	TRY_ERROR(fd < 0,"连接服务器失败");
 
 	LoginResultModel login_result;
