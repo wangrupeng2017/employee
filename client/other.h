@@ -5,8 +5,8 @@
 #include "client.h"
 
 
-int adminQueryBusiness(int file_descriptor, LoginResultModel * login_model);
-int adminQueryLogsBusiness(int file_descriptor, LoginResultModel * login_model);
+int adminQueryBusiness(int file_descriptor, LoginResult * login_model);
+int adminQueryLogsBusiness(int file_descriptor, LoginResult * login_model);
 
 
 #endif //__OTHER_H__

@@ -13,6 +13,7 @@
 #include <sqlite3.h>
 #include "common_base.h"
 #include "socket_models.h"
+#include "store_models.h"
 
 #define DB_PATH  "./employee.db"
 
@@ -24,32 +25,13 @@
 #define INSERT_ADMIN_DATA "INSERT INTO employee(no, name, password, department, age, sex, salary, role) VALUES(1, 'admin', 'admin', '行政部门', 1, 1, 1, 2);"
 #define INSERT_TEST_DATA "INSERT INTO employee(name, password, department, age, sex, salary, role) VALUES('test', 'test', '网络部', 1, 1, 1, 1);"
 
-// 员工信息结构体
-typedef struct EmployeeInfo {
-	uint  empno;
-	char  name[EMPLOYEE_NAME_SIZE];
-	char  pwd[EMPLOYEE_PWD_SIZE];
-	uchar sex;
-	uchar age;
-	uint  salary;
-	char  department[EMPLOYEE_DEPARTMENT_SIZE];
-	uchar role;
-} EmployeeInfo;
-
-// 日志信息结构体
-typedef struct LogInfo {
-	uint empno;
-	char description[LOG_DESCRIBE_SIZE];
-	long time;
-} LogInfo;
-
 // 初始化sqlite3
 int initSQL(sqlite3 **out);
 // 关闭sqlite3
 int closeSQL();
 
 // 校验信息
-int checkEmployeeInfo(char name[EMPLOYEE_NAME_SIZE], char pwd[EMPLOYEE_PWD_SIZE], EmployeeInfo *info);
+int checkEmployeeInfo(ename_t name, epwd_t pwd, EmployeeInfo *info);
 // 创建员工
 int createEmployeeInfo(EmployeeInfo *info, uint *empno);
 // 删除员工
@@ -57,12 +39,12 @@ int deleteEmployeeInfo(uint empno);
 // 修改员工
 int modifyEmployeeInfo(EmployeeInfo *info);
 // 查询员工
-int queryEmployeeInfo(uint empno, char name[EMPLOYEE_NAME_SIZE], EmployeeInfo info[QUERY_EMPLOYEE_COUNT]);
+int queryEmployeeInfo(uint empno, ename_t name, EmployeeInfo info[QUERY_EMPLOYEE_COUNT]);
 
 // 创建日志
-int createLogInfo(LogInfo *info);
+int createLogInfo(OperationLogInfo *info);
 // 查询日志
-int queryLogInfo(char time[LOG_TIME_SIZE], LogQueryResult info[QUERY_LOG_COUNT]);
+int queryLogInfo(stime_t time, LogQueryResult info[QUERY_LOG_COUNT]);
 // 记录日志
 void saveLogs(uint empno, char message[50]);
 

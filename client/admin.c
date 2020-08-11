@@ -18,7 +18,7 @@
  * @Author     : xuyuanbing
  * @Other      : 
  */
-int doAdminBusiness(int file_descriptor, LoginResultModel * login_model)
+int doAdminBusiness(int file_descriptor, LoginResult * login_model)
 {
 	int ret = 0; //在在菜单向循环，非0 则返回到登陆页面 
 	int choose = 0;
@@ -49,7 +49,7 @@ int doAdminBusiness(int file_descriptor, LoginResultModel * login_model)
 }
 
 // 解析菜单输入
-int gotoAdminChoose(int file_descriptor, int userChoose, LoginResultModel * login_model)
+int gotoAdminChoose(int file_descriptor, int userChoose, LoginResult * login_model)
 {
 	int ret = -1;
 	switch(userChoose){
@@ -109,7 +109,7 @@ int getAdminMenuChoose(void)
  * @Author     : xuyuanbing
  * @Other      : 
  */
-int adminAddBusiness(int file_descriptor, LoginResultModel * login_model)
+int adminAddBusiness(int file_descriptor, LoginResult * login_model)
 {
 	int ret = -1; 
 	EmployeeCreateModel create_model = {0};
@@ -133,7 +133,7 @@ int adminAddBusiness(int file_descriptor, LoginResultModel * login_model)
  * @Other      : 
  */
 int getAdminAddModel(EmployeeCreateModel * create_model)
-{ /*{{{*/
+{ 
 
 	// TODO create_model 中的 token 没有处理
 	char tmp [20] = {0};
@@ -168,7 +168,7 @@ int getAdminAddModel(EmployeeCreateModel * create_model)
 	getDataFgets(tmp, sizeof(tmp));
 	strncpy(create_model->department, tmp, sizeof(create_model->department) - 1);
 	return 0;
-}/*}}}*/
+}
 
 
 /*
@@ -213,13 +213,13 @@ int sendAdminAddRequest(int file_descriptor, EmployeeCreateModel *create_model, 
  * description : 删除用户业务
  * function    : 
  * @param [ in]: int file_descriptor 
- * 		LoginResultModel * login_model
+ * 		LoginResult * login_model
  * @param [out]: 
  * @return     : 
  * @Author     : xuyuanbing
  * @Other      : 
  */
-int adminDeleteBusiness(int file_descriptor, LoginResultModel * login_model)
+int adminDeleteBusiness(int file_descriptor, LoginResult * login_model)
 {
 	EmployeeDeleteModel delete_model = {0};
 
@@ -269,11 +269,9 @@ int sendEmployeeDeleteRequest (int file_descriptor, EmployeeDeleteModel *delete_
 	};
 	
 	ResponseInfo res = {0};
-	EmployeeCreateResult res_model = {0};
-	// 输入参的基本校验 忽 TODO 
 	int ret = -1;
 	ret = request(file_descriptor, &req, sizeof(req), delete_model, sizeof(EmployeeDeleteModel),
-			&res, sizeof(ResponseInfo), &res_model, sizeof(res_model));
+			&res, sizeof(ResponseInfo), NULL, 0);
 	if( ret ){
 		printf("%s\n", res.message);
 	}
@@ -285,17 +283,53 @@ int sendEmployeeDeleteRequest (int file_descriptor, EmployeeDeleteModel *delete_
 
 
 // 6.修改用户业务:::
-int adminModifyBusiness(int file_descriptor, LoginResultModel *login_model)
+int adminModifyBusiness(int file_descriptor, LoginResult *login_model)
 {
-	EmployeeQueryModel  query_model = {0};
-	getEmployeeName(query_model.name, sizeof(query_model.name));
-	int ret = sendAdminEmployeeQueryRequest(file_descriptor, &query_model);
-	if( ret ){
-		return ret;
+	EmployeeQueryModel  req_data = {0};
+	getEmployeeName(req_data.name, sizeof(req_data.name));
+
+	RequestInfo         req_head = {0};
+	ResponseInfo        res_head = {0};
+	EmployeeQueryResult res_data[20] = {0};
+	req_head.type = EmployeeQuery;
+	req_head.size = sizeof(req_data);
+
+	// 发送查询请求
+	int ret = request(file_descriptor, 
+			&req_head, sizeof(req_head), &req_data, sizeof(EmployeeQueryModel),
+			&res_head, sizeof(res_head), res_data, sizeof(res_data));
+
+	// 查询结果员工数量
+	int employee_count = res_head.size/sizeof(EmployeeQueryResult);
+	if (employee_count == 0){
+		printf("未查询到指定条件的员工信息, 请换个条件试一试\n");
+		return FuncException;
 	}
 
-	EmployeeModifyModel modify_model = {0};
-	getEmployeeNumber(&modify_model.empno);
+	// 打印员工信息
+	int i = 0;
+	for (i=0; i<employee_count; i++)
+	{
+		EmployeeQueryResult e = res_data[i];
+		printf("[%d]\t%d\t%s\t%s\t%s\t%d\t%d\t%s\n", 
+				i+1, e.empno, e.name, e.pwd, e.sex==Male?"男":"女",
+				e.age, e.salary, e.department);
+	}
+
+	// 选择要修改的员工
+	int index = -1;
+	fprintf(stderr, "请输入序号选择要修改的员工:");
+Input_Label:
+	scanf("%d", &index);
+	while(getchar() != '\n');	
+	if (index<=0 || index>(employee_count))
+	{
+		fprintf(stderr, "输入有误，请重新输入:");
+		goto Input_Label;
+	}
+
+	// 修改员工信息
+	EmployeeModifyModel modify_model = res_data[index-1];
 	getEmployeeNewinfo(&modify_model);
 	ret = sendAdminModifyRequest(file_descriptor, &modify_model);
 	return ret ;
@@ -445,9 +479,8 @@ int sendAdminModifyRequest(int file_descriptor, EmployeeModifyModel *modify_mode
 	};
 	
 	ResponseInfo res = {0};
-	EmployeeQueryResult res_model = {0};
 	int ret = request(file_descriptor, &req, sizeof(req), modify_model, sizeof(EmployeeModifyModel),
-			&res, sizeof(res), &res_model, sizeof(res_model)); 
+			&res, sizeof(res), NULL, 0); 
 	if( ret ){
 		printf("%s\n", res.message);
 	}

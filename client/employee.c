@@ -18,7 +18,7 @@
  * @Author     : xuyuanbing
  * @Other      : 
  */
-int doEmployeeBusiness(int file_descriptor, LoginResultModel * login_model)
+int doEmployeeBusiness(int file_descriptor, LoginResult * login_model)
 {
 	int ret = 0; //在在菜单向循环，非0 则返回到登陆页面 
 	int choose = 0;
@@ -44,7 +44,8 @@ int doEmployeeBusiness(int file_descriptor, LoginResultModel * login_model)
 void showEmployeeMenu(void)
 {
 	printf("********************  很高兴为您服务  **********************\n");
-	printf("**************  1:信息查询  2:信息修改 3:签到 0:退出 *******\n");
+	printf("**************  1:信息查询  2:信息修改 *********************\n");
+	printf("**************  3:签到  4:签到查询  0:退出 *****************\n");
 	printf("************************************************************\n");
 }
 
@@ -57,7 +58,7 @@ void showEmployeeMenu(void)
  * @Author     : xuyuanbing
  * @Other      : 
  */
-int gotoEmployeeChoose(int file_descriptor, int userChoose, LoginResultModel * login_model)
+int gotoEmployeeChoose(int file_descriptor, int userChoose, LoginResult * login_model)
 {
 	// 就三种情况， 1. 继续上一级服务， 2.退出服务
 	int ret = -1;
@@ -70,7 +71,10 @@ int gotoEmployeeChoose(int file_descriptor, int userChoose, LoginResultModel * l
 		employeeModifyBusiness(file_descriptor, login_model);
 		break;
 	case 3:
-		signinemployee(file_descriptor, login_model);
+		signinEmployee(file_descriptor, login_model);
+		break;
+	case 4:
+		getSigninInfo(file_descriptor, login_model);
 		break;
 	case 0:
 		ret = employeeQuitBusiness(file_descriptor, login_model);
@@ -93,7 +97,7 @@ int gotoEmployeeChoose(int file_descriptor, int userChoose, LoginResultModel * l
  * @Author     : xuyuanbing
  * @Other      : 
  */
-int employeeQueryBusiness(int file_descriptor, LoginResultModel * login_model)
+int employeeQueryBusiness(int file_descriptor, LoginResult * login_model)
 {
 	EmployeeQueryModel query_model = {0};
 	strncpy(query_model.name, login_model->name, sizeof(query_model.name));
@@ -152,10 +156,9 @@ int sendEmployeeQueryRequest(int file_descriptor, EmployeeQueryModel* query_mode
  * @Author     : xuyuanbing
  * @Other      : 
  */
-int employeeModifyBusiness(int file_descriptor,  LoginResultModel* login_model)
+int employeeModifyBusiness(int file_descriptor,  LoginResult* login_model)
 {
-	EmployeeModifyModel modify_model = {0};
-	modify_model.empno = login_model->empno;	
+	EmployeeModifyModel modify_model = *login_model;
 	getEmployeeModifyModel(&modify_model);
 	int ret = sendEmployeeModifyRequest(file_descriptor, &modify_model);
 	return ret;
@@ -217,9 +220,8 @@ int sendEmployeeModifyRequest(int file_descriptor, EmployeeModifyModel*model)
 	};
 
 	ResponseInfo res = {0};
-	EmployeeQueryResult res_model = {0};
 	int ret = request(file_descriptor, &req, sizeof(req), model, sizeof(EmployeeModifyModel),
-			&res, sizeof(res), &res_model, sizeof(res_model)); 
+			&res, sizeof(res), NULL, 0); 
 	return ret;
 }
 
@@ -232,28 +234,23 @@ int sendEmployeeModifyRequest(int file_descriptor, EmployeeModifyModel*model)
  * @Author     : xuyuanbing
  * @Other      : 
  */
-int signInEmployee(int file_descriptor, LoginResultModel * login_model)
+int signinEmployee(int file_descriptor, LoginResult * login_model)
 {
 	RequestInfo req = {
 		.type = SignIn,
-		.size = sizeof(LoginResultModel)
-	};
-	EmployeeDeleteModel model = {
-		.empno = 2
+		.size = 0
 	};
 	ResponseInfo res = {0};
-	LoginResultModel res_model = {0};
 
-	int ret = request(file_descriptor, &req, sizeof(req), login_model, sizeof(LoginResultModel),
-			&res, sizeof(res), &res_model, sizeof(res_model));
-	//if( ret ){
-		printf("%s\n", res.message);
-	//}
+	int ret = request(file_descriptor, &req, sizeof(req), NULL, 0,
+			&res, sizeof(res), NULL, 0);
+
+	printf("%s\n", res.message);
 	return ret;
 }
 
 /*
- * description : 员工打卡
+ * description : 员工打开信息
  * function    : 
  * @param [ in]: 
  * @param [out]: 
@@ -261,22 +258,17 @@ int signInEmployee(int file_descriptor, LoginResultModel * login_model)
  * @Author     : xuyuanbing
  * @Other      : 
  */
-int signinemployee(int file_descriptor, LoginResultModel * login_model)
+int getSigninInfo(int file_descriptor, LoginResult * login_model)
 {
 	RequestInfo req = {
-		.type = SignIn,
-		.size = sizeof(LoginResultModel)
-	};
-	EmployeeDeleteModel model = {
-		.empno = 2
+		.type = SignInInfo,
+		.size = 0
 	};
 	ResponseInfo res = {0};
-	LoginResultModel res_model = {0};
 
-	int ret = request(file_descriptor, &req, sizeof(req), login_model, sizeof(LoginResultModel),
-			&res, sizeof(res), &res_model, sizeof(res_model));
-	//if( ret ){
-		printf("%s\n", res.message);
-	//}
+	int ret = request(file_descriptor, &req, sizeof(req), NULL, 0,
+			&res, sizeof(res), NULL, 0);
+	printf("%s\n", res.message);
+
 	return ret;
 }

@@ -11,123 +11,99 @@
 #define __SOCKET_MODELS_H__
 
 #include "common_base.h"
+#include "store_models.h"
 
+typedef char(resmessage_t)[200];
 
 // 角色类型
 typedef enum RoleType {
-	EmployeeRole = 1,
-	AdminRole    = 2,
+	EmployeeRole = 1,   //普通员工
+	AdminRole    = 2,   //管理员
 } RoleType;
 
 // 性别类型
 typedef enum SexType {
-	Male   = 1,
-	Female = 2,
+	Male   = 1,         //男
+	Female = 2,         //女
 } SexType;
 
 // 请求类型
 typedef enum RequestType {
-	Login          = 1,
-	Quit           = 2,
-	EmployeeQuery  = 3,
-	EmployeeModify = 4,
-	EmployeeAdd    = 5,
-	EmployeeDelete = 6,
-	LogsQuery      = 7,
-	SignIn         = 8,
-	SignInInfo     = 9,
+	Login          = 1, //登录
+	Quit           = 2, //退出
+	EmployeeQuery  = 3, //查询员工
+	EmployeeModify = 4, //修改员工
+	EmployeeAdd    = 5, //添加员工
+	EmployeeDelete = 6, //删除员工
+	LogsQuery      = 7, //日志查询
+	SignIn         = 8, //签到
+	SignInInfo     = 9, //签到查询
 } RequestType;
 
 // 响应结果
 typedef enum ResultStatus {
-	Success = 0,
-	Failed  = 1,
+	Success = 0,        //处理成功
+	Failed  = 1,        //处理出错
 } ResultStatus;
 
 // 请求头信息
 typedef struct RequestInfo {
-	RequestType type;
-	uint        size;
+	RequestType type;   //请求类型
+	uint        size;   //请求体大小
 } RequestInfo;
+
 // 响应头信息
 typedef struct ResponseInfo {
-	RequestType  type;
-	uint         size;
-	ResultStatus result;
-	char         message[RES_MESSAGE_SIZE];
+	RequestType  type;    //响应类型
+	uint         size;    //响应体大小
+	ResultStatus result;  //处理结果
+	resmessage_t message; //结果描述
 } ResponseInfo;
 
-// 登录系统请求/响应结构
+// 登录系统请求体
 typedef struct LoginModel {
-	char name[EMPLOYEE_NAME_SIZE];
-	char pwd[EMPLOYEE_PWD_SIZE];
+	ename_t name;         //用户名 
+	epwd_t  pwd;          //密码
 } LoginModel;
-typedef struct LoginResult {
-	char name[EMPLOYEE_NAME_SIZE];
-	uint empno;
-	uchar role;
-} LoginResultModel;
+
+// 登录系统响应体
+typedef EmployeeInfo LoginResult;
 
 // 退出系统请求/响应结构
 typedef struct QuitModel {
-	uint empno;
+	uint empno;           //员工号
 } QuitModel;
 
 // 查询员工请求/响应结构
 typedef struct EmployeeQueryModel {
-	char name[EMPLOYEE_NAME_SIZE];
-	uint empno;
+	ename_t name;         //用户名
+	uint empno;           //员工号
 } EmployeeQueryModel;
-typedef struct EmployeeQueryResult {
-	uint  empno;
-	char  name[EMPLOYEE_NAME_SIZE];
-	char  pwd[EMPLOYEE_PWD_SIZE];
-	uchar sex;
-	uchar age;
-	uint  salary;
-	char  department[EMPLOYEE_DEPARTMENT_SIZE];
-	uchar role;
-} EmployeeQueryResult;
+// 查询员工响应体
+typedef EmployeeInfo EmployeeQueryResult;
 
-// 修改员工请求/响应结构
-typedef struct EmployeeModifyModel {
-	uint  empno;
-	char  name[EMPLOYEE_NAME_SIZE];
-	char  pwd[EMPLOYEE_PWD_SIZE];
-	uchar sex;
-	uchar age;
-	uint  salary;
-	char  department[EMPLOYEE_NAME_SIZE];
-} EmployeeModifyModel; 
+// 修改员工请求
+typedef EmployeeInfo EmployeeModifyModel;
 
-// 创建新员工请求/响应结构
-typedef struct EmpldoyeeCreateModel {
-	char  name[EMPLOYEE_NAME_SIZE];
-	char  pwd[EMPLOYEE_PWD_SIZE];
-	uchar sex;
-	uchar age;
-	uint  salary;
-	char  department[EMPLOYEE_DEPARTMENT_SIZE];
-} EmployeeCreateModel;
-typedef struct EmployeeCreateResult {
-	uint  empno;
-	char  name[EMPLOYEE_NAME_SIZE];
-	char  pwd[EMPLOYEE_PWD_SIZE];
-} EmployeeCreateResult;
+// 创建新员工请求体
+typedef EmployeeInfo EmployeeCreateModel;
+// 创建新员工响应体
+typedef EmployeeInfo EmployeeCreateResult; 
 
-// 删除员工请求/响应结构
+// 删除员工请求体
 typedef struct EmployeeDeleteModel {
-	uint empno;
+	uint empno;           //员工号
 } EmployeeDeleteModel;
 
-// 日志查询请求/响应结构
+// 日志查询请求体
 typedef struct LogQueryModel {
-	char date[LOG_TIME_SIZE];
+	stime_t date;         //员工号
 } LogQueryModel;
+// 日志查询响应体
 typedef struct LogQueryResult {
-	uint empno;
-	char describe[LOG_DESCRIBE_SIZE];
-	char date[LOG_TIME_SIZE];
+	uint empno;           //员工号
+	opdesc_t describe;    //操作描述
+	stime_t date;         //操作时间
 } LogQueryResult;
 
 

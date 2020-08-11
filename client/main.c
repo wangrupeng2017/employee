@@ -26,11 +26,11 @@ int main(int argc, const char *argv[])
 
 	TRY_ERROR(fd < 0,"连接服务器失败");
 
-	LoginResultModel login_result;
+	LoginResult login_result;
 	LoginModel login_model;
 loop_menu_label:
 	bzero(&login_model, sizeof(LoginModel));
-	bzero(&login_result, sizeof(LoginResultModel));
+	bzero(&login_result, sizeof(LoginResult));
 	ret = loginBusiness(fd, &login_model, &login_result);// 这里面直接就exit()
 
 	if( ret ) goto loop_menu_label;

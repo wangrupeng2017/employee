@@ -24,7 +24,7 @@
  * @Author     : xuyuanbing
  * @Other      : 
  */
-int doEmployeeBusiness(int file_descriptor, LoginResultModel * login_model);
+int doEmployeeBusiness(int file_descriptor, LoginResult * login_model);
 
 /*
  * description : 打印普通用户菜单
@@ -46,7 +46,7 @@ void showEmployeeMenu(void);
  * @Author     : xuyuanbing
  * @Other      : 
  */
-int gotoEmployeeChoose(int file_descriptor, int userChoose, LoginResultModel * login_model);
+int gotoEmployeeChoose(int file_descriptor, int userChoose, LoginResult * login_model);
 
 /*
  * description : 普通员工信息查询业务
@@ -59,7 +59,7 @@ int gotoEmployeeChoose(int file_descriptor, int userChoose, LoginResultModel * l
  * @Author     : xuyuanbing
  * @Other      : 
  */
-int employeeQueryBusiness(int file_descriptor, LoginResultModel * login_model);
+int employeeQueryBusiness(int file_descriptor, LoginResult * login_model);
 
 /*
  * description : 发送信息查询请求, 接收查询结果
@@ -87,7 +87,7 @@ int sendEmployeeQueryRequest(int file_descriptor, EmployeeQueryModel* query_mode
  * @Author     : xuyuanbing
  * @Other      : 
  */
-int employeeModifyBusiness(int file_descriptor, LoginResultModel * login_model);
+int employeeModifyBusiness(int file_descriptor, LoginResult * login_model);
 
 /*
  * description : 交互获取用户信息 用户名/密码/性别/年龄
@@ -123,6 +123,17 @@ int sendEmployeeModifyRequest(int file_descriptor, EmployeeModifyModel*model);
  * @Author     : xuyuanbing
  * @Other      : 
  */
-int signinemployee(int file_descriptor, LoginResultModel * login_model);
+int signinEmployee(int file_descriptor, LoginResult * login_model);
+
+/*
+ * description : 查询打开信息
+ * function    : 
+ * @param [ in]: 
+ * @param [out]: 
+ * @return     : 
+ * @Author     : xuyuanbing
+ * @Other      : 
+ */
+int getSigninInfo(int file_descriptor, LoginResult * login_model);
 
 #endif /* __EMPLOYEE_H__ */

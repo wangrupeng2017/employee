@@ -77,7 +77,7 @@ int closeSQL()
  * 	 info     : 用户信息
  * @return      0:处理成功 !0:处理出错
  */
-int checkEmployeeInfo(char name[EMPLOYEE_NAME_SIZE], char pwd[EMPLOYEE_PWD_SIZE], EmployeeInfo *info)
+int checkEmployeeInfo(ename_t name, epwd_t pwd, EmployeeInfo *info)
 {
 	char sql[256]  = "";
 	char **result  = NULL;
@@ -175,17 +175,12 @@ int deleteEmployeeInfo(uint empno)
 int modifyEmployeeInfo(EmployeeInfo *info)
 {
 	char sql[256] = "";
-	/**
 	char *sql_format = "UPDATE employee \
 					   SET age='%d', sex='%d', salary='%d', role='%d', \
 					       name='%s', password='%s', department='%s' \
 					   WHERE no='%d'";
 	sprintf(sql, sql_format, info->age, info->sex, info->salary, info->role, \
 			info->name, info->pwd, info->department, info->empno);
-	*/
-	// 普通员工修改信息
-	char *sql_format = "UPDATE employee SET age='%d', sex='%d', name='%s', password='%s' WHERE no='%d'";
-	sprintf(sql, sql_format, info->age, info->sex, info->name, info->pwd, info->empno);
 
 	int ret = sqlite3_exec(db_instance, sql, NULL, NULL, NULL);
 	TRY_SQLITE_ERROR(ret!=SQLITE_OK, "修改员工:", db_instance, return FuncError);
@@ -203,7 +198,7 @@ int modifyEmployeeInfo(EmployeeInfo *info)
  *   info     : 员工信息
  * @return      查询数量
  */
-int queryEmployeeInfo(uint empno, char name[EMPLOYEE_NAME_SIZE], EmployeeInfo info[QUERY_EMPLOYEE_COUNT])
+int queryEmployeeInfo(uint empno, ename_t name, EmployeeInfo info[QUERY_EMPLOYEE_COUNT])
 {
 	char sql[256]  = "";
 	char **result  = NULL;
@@ -250,7 +245,7 @@ int queryEmployeeInfo(uint empno, char name[EMPLOYEE_NAME_SIZE], EmployeeInfo in
  * 	 info     : 日志信息
  * @return      0:处理成功 !0:处理出错
  */
-int createLogInfo(LogInfo *info)
+int createLogInfo(OperationLogInfo *info)
 {
 	char sql[256] = "";
 	char *sql_format = "INSERT INTO operation_log(no, description, time) \
@@ -272,7 +267,7 @@ int createLogInfo(LogInfo *info)
  *   info     : 日志信息
  * @return      查询数量
  */
-int queryLogInfo(char time[LOG_TIME_SIZE], LogQueryResult info[QUERY_LOG_COUNT])
+int queryLogInfo(stime_t time, LogQueryResult info[QUERY_LOG_COUNT])
 {
 	char **result  = NULL;
 	char *pzErrmsg = NULL;
@@ -313,7 +308,7 @@ int queryLogInfo(char time[LOG_TIME_SIZE], LogQueryResult info[QUERY_LOG_COUNT])
  */
 void saveLogs(uint empno, char message[50])
 {
-	LogInfo info = {0};
+	OperationLogInfo info = {0};
 	info.empno = empno;
 	info.time  = time(NULL);
 	strcpy(info.description, message);
@@ -463,13 +458,14 @@ int querySigninInfo(int empno, char out[100])
 	if (tm_t->tm_mon == 11)
 		sprintf(strtime, "%d-%d-1 00:00:00", tm_t->tm_year+1901, tm_t->tm_mon+1-11);
 	else
-		sprintf(strtime, "%d-%d-1 00:00:00", tm_t->tm_year+1900, tm_t->tm_mon+1);
+		sprintf(strtime, "%d-%d-1 00:00:00", tm_t->tm_year+1900, tm_t->tm_mon+2);
 	strptime(strtime, "%Y-%m-%d %H:%M:%S", &stm2);
 
 
 	char sql[256] = "";
 	char *sql_format = "SELECT COUNT(*) FROM signin WHERE no='%d' and time>'%d' and time<'%d';";
 	sprintf(sql, sql_format, empno, mktime(&stm1), mktime(&stm2));
+	printf("sql:%s\n", sql);
 
 	char **result  = NULL;
 	char *pzErrmsg = NULL;

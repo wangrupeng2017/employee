@@ -119,9 +119,9 @@ int businessEntrance(int fd)
  */
 int loginHandler(int fd, RequestInfo *req_head, void *req_data, ResponseInfo *res_head, void **res_data)
 {
-	LoginModel *model       = req_data;
-	EmployeeInfo einfo      = {0};
-	LoginResultModel result = {0};
+	LoginModel *model   = req_data;
+	EmployeeInfo einfo  = {0};
+	LoginResult result  = {0};
 
 	// 校验登录信息
 	int ret = checkEmployeeInfo(model->name, model->pwd, &einfo);
@@ -137,11 +137,9 @@ int loginHandler(int fd, RequestInfo *req_head, void *req_data, ResponseInfo *re
 	res_head->result = Success;
 	strcpy(res_head->message, "登录成功");	
 	
-	result.empno = einfo.empno;
-	result.role  = einfo.role;
-	strcpy(result.name, einfo.name);
-	*res_data = malloc(sizeof(LoginResultModel));
-	memcpy(*res_data, &result, sizeof(LoginResultModel));
+	result    = einfo;
+	*res_data = malloc(sizeof(LoginResult));
+	memcpy(*res_data, &result, sizeof(LoginResult));
 	return FuncNormal;
 
 LOGIN_FAILE_LABEL:
@@ -220,14 +218,7 @@ int employeeModifyHandler(int fd, RequestInfo *req_head, void *req_data, Respons
 	EmployeeModifyModel *model = req_data;
 	EmployeeInfo employee      = {0};
 
-	employee.empno  = model->empno;
-	employee.sex    = model->sex;
-	employee.age    = model->age;
-	employee.salary = model->salary;
-	strcpy(employee.name, model->name);
-	strcpy(employee.pwd, model->pwd);
-	strcpy(employee.department, model->department);
-	int ret = modifyEmployeeInfo(&employee);
+	int ret = modifyEmployeeInfo(model);
 	if (ret < 0) goto SERVER_ERR_LABEL;
 
 	// 返回查询成功信息
@@ -252,16 +243,11 @@ int employeeAddHandler(int fd, RequestInfo *req_head, void *req_data, ResponseIn
 {
 	EmployeeCreateModel *model  = req_data;
 	EmployeeCreateResult result = {0};
-	EmployeeInfo employee = {0};
-	uint empno = 0;	
+	EmployeeInfo employee       = *model;
+	employee.role               = 1;
+	uint empno                  = 0;	
 
-	employee.role   = 1;
-	employee.sex    = model->sex;
-	employee.age    = model->age;
-	employee.salary = model->salary;
-	strcpy(employee.name, model->name);
-	strcpy(employee.pwd, model->pwd);
-	strcpy(employee.department, model->department);
+
 	int ret = createEmployeeInfo(&employee, &empno);
 	if (ret < 0) goto SERVER_ERR_LABEL;
 
@@ -270,10 +256,9 @@ int employeeAddHandler(int fd, RequestInfo *req_head, void *req_data, ResponseIn
 	res_head->size   = sizeof(result);
 	strcpy(res_head->message, "创建成功");
 	
+	// 响应体
+	result       = employee;
 	result.empno = empno;
-	strcpy(result.name, model->name);
-	strcpy(result.pwd, model->pwd);
-
 	*res_data = malloc(sizeof(result));
 	memcpy(*res_data, &result, sizeof(result));
 	return FuncNormal;

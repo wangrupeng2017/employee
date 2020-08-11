@@ -52,13 +52,13 @@ error_label:
  * 		int fd, 
  * 		LoginModel *login_model
  * @param [out]: 
- * 		LoginResultModel *result_model
+ * 		LoginResult *result_model
  * @return     : 
  *    0:登陆成功 !0: 登陆失败
  * @Author     : xuyuanbing
  * @Other      : 
  */
-int loginBusiness(int fd, LoginModel *login_model, LoginResultModel *result_model)
+int loginBusiness(int fd, LoginModel *login_model, LoginResult *result_model)
 {
 	int ret = -1;
 	showLoginMenu();
@@ -123,14 +123,14 @@ int getLoginModel(LoginModel *model)
  * @param [ in]: 
  * 		LoginModel *model 用户登陆信息
  * @param [out]: 
- *  	LoginResultModel *out 服务器端返回的信息
+ *  	LoginResult *out 服务器端返回的信息
  * @return     : 
  * 		int 0: 发送登陆请求成功
  * 			1: 发送登陆请求出错
  * @Author     : xuyuanbing
  * @Other      : 
  */
-static int sendLoginRequest(int file_descriptor, LoginModel *model, LoginResultModel *login_result_model)
+static int sendLoginRequest(int file_descriptor, LoginModel *model, LoginResult *login_result_model)
 {
 	RequestInfo req = {
 		.type = Login,
@@ -140,7 +140,7 @@ static int sendLoginRequest(int file_descriptor, LoginModel *model, LoginResultM
 
 	int ret = FuncException;
 	ret = request(file_descriptor, &req, sizeof(RequestInfo), model, sizeof(LoginModel),
-			&res, sizeof(ResponseInfo), login_result_model, sizeof(LoginResultModel));
+			&res, sizeof(ResponseInfo), login_result_model, sizeof(LoginResult));
 	if( res.result == Failed ){
 		printf("%s\n", res.message);
 	}
@@ -212,7 +212,7 @@ void getDataFgets(char * data, size_t size)
  * @Author     : xuyuanbing
  * @Other      : 
  */
-int employeeQuitBusiness(int file_descriptor, LoginResultModel *login_model)
+int employeeQuitBusiness(int file_descriptor, LoginResult *login_model)
 {
 	printf("您如果确认退出请输入(yes):");
 	char temp [12] = {0};
@@ -224,8 +224,7 @@ int employeeQuitBusiness(int file_descriptor, LoginResultModel *login_model)
 
 	QuitModel quit_model = {0};
 	quit_model.empno = login_model->empno;
-	LoginResultModel login_result = {0};
-	int ret = sendQuitRequest(file_descriptor, &quit_model, &login_result);
+	int ret = sendQuitRequest(file_descriptor, &quit_model);
 
 	return ret;
 }
@@ -237,21 +236,19 @@ int employeeQuitBusiness(int file_descriptor, LoginResultModel *login_model)
  * @param [ in]: 
  * 		int file_descriptor 
  * 		QuitModel *quit_model 
- * @param [out]: 
- * 		LoginResultModel *login_result
  * @return     : 返回值: 0:成功 !0:出错
  * @Author     : xuyuanbing
  * @Other      : 
  */
-int sendQuitRequest(int file_descriptor, QuitModel *quit_model, LoginResultModel *login_result)
+int sendQuitRequest(int file_descriptor, QuitModel *quit_model)
 {
 	RequestInfo req = {
 		.type = Quit,
 		.size = sizeof(QuitModel)
 	};
 	ResponseInfo res = {0};
-	int ret = request(file_descriptor, &req, sizeof(req), quit_model, sizeof(QuitModel), &res, sizeof(res),
-			login_result, sizeof(login_result));
+	int ret = request(file_descriptor, &req, sizeof(req), quit_model, sizeof(QuitModel), 
+			          &res, sizeof(res), NULL, 0);
 	return ret;
 }
 

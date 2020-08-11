@@ -3,7 +3,7 @@
 #include "other.h"
 
 // 管理员查询相关方法
-int adminQueryBusiness(int file_descriptor, LoginResultModel * login_model)
+int adminQueryBusiness(int file_descriptor, LoginResult * login_model)
 {
 	int choose = 0;
 
@@ -74,7 +74,7 @@ Input_Label:
 
 
 // 查询日志操作
-int adminQueryLogsBusiness(int file_descriptor, LoginResultModel * login_model)
+int adminQueryLogsBusiness(int file_descriptor, LoginResult * login_model)
 {
 	time_t t      = time(NULL);
 	struct tm *tm = localtime(&t);

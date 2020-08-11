@@ -35,13 +35,13 @@ int connectServer(char *ip, int port);
  * 		int fd, 
  * 		LoginModel *login_model
  * @param [out]: 
- * 		LoginResultModel *result_model
+ * 		LoginResult *result_model
  * @return     : 
  *    0:登陆成功 !0: 登陆失败
  * @Author     : xuyuanbing
  * @Other      : 
  */
-int loginBusiness(int fd, LoginModel *login_model, LoginResultModel *result_model);
+int loginBusiness(int fd, LoginModel *login_model, LoginResult *result_model);
 
 // 打印登陆菜单
 void showLoginMenu(void);
@@ -69,14 +69,14 @@ int getLoginModel(LoginModel *model);
  * @param [ in]: 
  * 		LoginModel *model 用户登陆信息
  * @param [out]: 
- *  	LoginResultModel *out 服务器端返回的信息
+ *  	LoginResult *out 服务器端返回的信息
  * @return     : 
  * 		int 0: 发送登陆请求成功
  * 			1: 发送登陆请求出错
  * @Author     : xuyuanbing
  * @Other      : 
  */
-static int sendLoginRequest(int fd, LoginModel *model, LoginResultModel *out);
+static int sendLoginRequest(int fd, LoginModel *model, LoginResult *out);
 
 /*
  * description : 通用的请求服务端的方法 不是放在这个文件的 TODO
@@ -112,7 +112,7 @@ void getDataFgets(char * data, size_t size);
  * @Author     : xuyuanbing
  * @Other      : 
  */
-int employeeQuitBusiness(int file_descriptor, LoginResultModel *login_model);
+int employeeQuitBusiness(int file_descriptor, LoginResult *login_model);
 
 
 /*
@@ -121,13 +121,11 @@ int employeeQuitBusiness(int file_descriptor, LoginResultModel *login_model);
  * @param [ in]: 
  * 		int file_descriptor 
  * 		QuitModel *quit_model 
- * @param [out]: 
- * 		LoginResultModel *login_result
  * @return     : 返回值: 0:成功 !0:出错
  * @Author     : xuyuanbing
  * @Other      : 
  */
-int sendQuitRequest(int file_descriptor, QuitModel *quit_model, LoginResultModel *login_result);
+int sendQuitRequest(int file_descriptor, QuitModel *quit_model);
 
 
 #endif // __CLIENT_H__
