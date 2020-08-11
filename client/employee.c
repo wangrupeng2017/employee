@@ -246,9 +246,9 @@ int signInEmployee(int file_descriptor, LoginResultModel * login_model)
 
 	int ret = request(file_descriptor, &req, sizeof(req), login_model, sizeof(LoginResultModel),
 			&res, sizeof(res), &res_model, sizeof(res_model));
-	if( ret ){
+	//if( ret ){
 		printf("%s\n", res.message);
-	}
+	//}
 	return ret;
 }
 
@@ -275,10 +275,8 @@ int signinemployee(int file_descriptor, LoginResultModel * login_model)
 
 	int ret = request(file_descriptor, &req, sizeof(req), login_model, sizeof(LoginResultModel),
 			&res, sizeof(res), &res_model, sizeof(res_model));
-	if( ret ){
+	//if( ret ){
 		printf("%s\n", res.message);
-	}else{
-		printf("签到成功\n");
-	}
+	//}
 	return ret;
 }

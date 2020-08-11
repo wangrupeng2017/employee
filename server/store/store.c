@@ -46,6 +46,10 @@ int initSQL(sqlite3 **out)
 	ret = sqlite3_exec(db_instance, INSERT_ADMIN_DATA, NULL, NULL, NULL);
 	TRY_SQLITE_ERROR(ret!=SQLITE_OK, "添加管理员:", db_instance, return FuncError);
 
+	// 添加普通员工帐号
+	ret = sqlite3_exec(db_instance, INSERT_TEST_DATA, NULL, NULL, NULL);
+	TRY_SQLITE_ERROR(ret!=SQLITE_OK, "添加普通员工:", db_instance, return FuncError);
+
 	*out = db_instance;
 	return FuncNormal;
 }
@@ -209,7 +213,7 @@ int queryEmployeeInfo(uint empno, char name[EMPLOYEE_NAME_SIZE], EmployeeInfo in
 
 	// 格式化SQL语句, 执行查询
 	char *sql_format = "SELECT no, age, sex, salary, role, name, password, department \
-					    FROM employee WHERE %s;";
+					    FROM employee WHERE %s  LIMIT 20;";
 	
 	char condition[100] = "";
 	(empno > 0) ? sprintf(condition, "no='%d'", empno) : sprintf(condition, "name='%s'", name);
@@ -276,7 +280,7 @@ int queryLogInfo(char time[LOG_TIME_SIZE], LogQueryResult info[QUERY_LOG_COUNT])
 	int nColumn    = 0;
 	char sql[256]  = "";
 	char *sql_format = "SELECT no, time, description FROM operation_log \
-					   WHERE time>='%ld' AND time<='%ld';";
+					   WHERE time>='%ld' AND time<='%ld' ORDER BY time DESC LIMIT 20;";
 	char time_str[30] = "";
 	sprintf(time_str, "%s 00:00:00", time);
 	struct tm stm;
@@ -411,11 +415,11 @@ int checkSigninInfo(int empno, int *out)
 
 	char sql[256]  = "";
 	char *sql_format = "SELECT no FROM signin  WHERE no='%d' and time>'%d' and time<'%d';";
-	sprintf(sql, sql_format, mktime(&stm), mktime(&stm)+24*60*60);
+	sprintf(sql, sql_format, empno, mktime(&stm), mktime(&stm)+24*60*60);
 
 	int ret = sqlite3_get_table(db_instance, sql, &result, &nRow, &nColumn, &pzErrmsg);
 	TRY_SQLITE_ERROR(ret!=SQLITE_OK, "检查是否签到:", db_instance, return FuncError);
-	
+		
 	nRow>0 ? (*out=1) : (*out=0);
 	return FuncNormal;
 }

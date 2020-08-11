@@ -22,6 +22,7 @@
 #define CREATE_SIGNIN_TABLE "CREATE TABLE if not exists signin(id integer PRIMARY KEY autoincrement, no int, time int);"
 #define DELETE_ADMIN_DATA "DELETE FROM employee WHERE no=1;"
 #define INSERT_ADMIN_DATA "INSERT INTO employee(no, name, password, department, age, sex, salary, role) VALUES(1, 'admin', 'admin', '行政部门', 1, 1, 1, 2);"
+#define INSERT_TEST_DATA "INSERT INTO employee(name, password, department, age, sex, salary, role) VALUES('test', 'test', '网络部', 1, 1, 1, 1);"
 
 // 员工信息结构体
 typedef struct EmployeeInfo {
