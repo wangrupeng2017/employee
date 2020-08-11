@@ -213,7 +213,7 @@ int queryEmployeeInfo(uint empno, char name[EMPLOYEE_NAME_SIZE], EmployeeInfo in
 
 	// 格式化SQL语句, 执行查询
 	char *sql_format = "SELECT no, age, sex, salary, role, name, password, department \
-					    FROM employee WHERE %s;";
+					    FROM employee WHERE %s  LIMIT 20;";
 	
 	char condition[100] = "";
 	(empno > 0) ? sprintf(condition, "no='%d'", empno) : sprintf(condition, "name='%s'", name);
@@ -280,7 +280,7 @@ int queryLogInfo(char time[LOG_TIME_SIZE], LogQueryResult info[QUERY_LOG_COUNT])
 	int nColumn    = 0;
 	char sql[256]  = "";
 	char *sql_format = "SELECT no, time, description FROM operation_log \
-					   WHERE time>='%ld' AND time<='%ld';";
+					   WHERE time>='%ld' AND time<='%ld' ORDER BY time DESC LIMIT 20;";
 	char time_str[30] = "";
 	sprintf(time_str, "%s 00:00:00", time);
 	struct tm stm;
