@@ -201,9 +201,9 @@ int sendAdminAddRequest(int file_descriptor, EmployeeCreateModel *create_model, 
 		printf("%s\n", res.message);
 	}else{
 		printf("******************************************\n");
+		printf("************** 员工号:%d\n", result->empno);
 		printf("************** 姓名:%s\n", result->name);
-		printf("************** 性别:%s\n", result->pwd);
-		printf("************** 年龄:%d\n\n", result->empno);
+		printf("************** 性别:%s\n\n", result->pwd);
 	}
 
 	return ret ;
