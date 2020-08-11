@@ -28,7 +28,7 @@ static int            g_nfds    = 0;
  * @return      正常:fds的长度 错误:<0
  */
 int iopollAdd(int fd, int events)
-{/*{{{*/
+{
 	struct pollfd pfd = {
 		.fd     = fd,
 		.events = events
@@ -68,7 +68,7 @@ int iopollAdd(int fd, int events)
 	g_pollfds = out_fds;
 	g_nfds   += 1;
 	return g_nfds;
-}/*}}}*/
+}
 
 
 /*
@@ -77,7 +77,7 @@ int iopollAdd(int fd, int events)
  * @return      正常:fds的长度 错误:<0
  */
 int iopollDel(int fd)
-{/*{{{*/
+{
 	int i = 0;
 	int delete_index = -1;
 	for (i=0; i<g_nfds; i++)
@@ -113,7 +113,7 @@ int iopollDel(int fd)
 	g_pollfds = out_fds;
 	g_nfds   -= 1;
 	return g_nfds;
-}/*}}}*/
+}
 
 
 /*
@@ -123,7 +123,7 @@ int iopollDel(int fd)
  * @return      0:正常  <0:出错
  */
 int iopollWait(int timeout, iopoll_call_t call)
-{/*{{{*/
+{
 	int ret = poll(g_pollfds, g_nfds, timeout);
 	TRY_PERROR(ret==-1, "poll():", return FuncError);
 
@@ -149,7 +149,7 @@ int iopollWait(int timeout, iopoll_call_t call)
 
 	free(workpollfds);
 	return FuncNormal;
-}/*}}}*/
+}
 
 /*
  * function:    释放poll内存

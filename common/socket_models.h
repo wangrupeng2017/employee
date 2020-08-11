@@ -69,9 +69,9 @@ typedef struct LoginResult {
 } LoginResultModel;
 
 // 退出系统请求/响应结构
-typedef struct QuitModel {/*{{{*/
+typedef struct QuitModel {
 	uint empno;
-} QuitModel;/*}}}*/
+} QuitModel;
 
 // 查询员工请求/响应结构
 typedef struct EmployeeQueryModel {
@@ -101,19 +101,19 @@ typedef struct EmployeeModifyModel {
 } EmployeeModifyModel; 
 
 // 创建新员工请求/响应结构
-typedef struct EmpldoyeeCreateModel {/*{{{*/
+typedef struct EmpldoyeeCreateModel {
 	char  name[EMPLOYEE_NAME_SIZE];
 	char  pwd[EMPLOYEE_PWD_SIZE];
 	uchar sex;
 	uchar age;
 	uint  salary;
 	char  department[EMPLOYEE_DEPARTMENT_SIZE];
-} EmployeeCreateModel;/*}}}*/
-typedef struct EmployeeCreateResult {/*{{{*/
+} EmployeeCreateModel;
+typedef struct EmployeeCreateResult {
 	uint  empno;
 	char  name[EMPLOYEE_NAME_SIZE];
 	char  pwd[EMPLOYEE_PWD_SIZE];
-} EmployeeCreateResult;/*}}}*/
+} EmployeeCreateResult;
 
 // 删除员工请求/响应结构
 typedef struct EmployeeDeleteModel {
