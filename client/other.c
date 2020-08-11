@@ -8,8 +8,8 @@ int adminQueryBusiness(int file_descriptor, LoginResult * login_model)
 	int choose = 0;
 
 	printf("********************  请选择查询的方式  ***********************\n");
-	printf("**************  1:员工号 2:用户名 0:退出 **********************\n");
-	printf("***************************************************************\n");
+	printf("**************  1:列表显示 2:员工号 3:用户名 ******************\n");
+	printf("***********************  0:退出 *******************************\n");
 
 Input_Label:
 	fprintf(stderr, "请选择查询的方式：");
@@ -29,12 +29,14 @@ Input_Label:
 	EmployeeQueryResult res_data[20] = {0};
 	switch (choose)
 	{
-		case 1:  //员工号
+		case 1:  //列表显示
+			break;
+		case 2:  //员工号
 			printf("请输入查询的员工号：");
 			scanf("%d", &req_data.empno);		
 			while(getchar() != '\n');
 			break;
-		case 2:  //用户名
+		case 3:  //用户名
 			printf("请输入查询的员工名：");
 			scanf("%s", req_data.name);		
 			while(getchar() != '\n');

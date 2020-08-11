@@ -20,7 +20,7 @@
  * @Author      xuyuanbing
  * @Other       
  */
-int connectServer(char *ip, int port)
+int connectServer(const char *ip, int port)
 {
 	int fd = socket(AF_INET, SOCK_STREAM, 0);
 	TRY_ERROR(fd == -1, "open socket tcp");

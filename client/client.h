@@ -26,7 +26,7 @@
  * @Author      xuyuanbing
  * @Other       
  */
-int connectServer(char *ip, int port);
+int connectServer(const char *ip, int port);
 
 /*
  * description : 登录业务
