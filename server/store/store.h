@@ -54,7 +54,7 @@ int deleteEmployeeInfo(uint empno);
 // 修改员工
 int modifyEmployeeInfo(EmployeeInfo *info);
 // 查询员工
-int queryEmployeeInfo(uint empno, ename_t name, EmployeeInfo info[QUERY_EMPLOYEE_COUNT]);
+int queryEmployeeInfo(uint empno, ename_t name, EmployeeInfo *info, uint max_count);
 
 // 创建日志
 int createLogInfo(OperationLogInfo *info);

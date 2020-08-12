@@ -187,7 +187,7 @@ int employeeQueryHandler(int fd, RequestInfo *req_head, void *req_data, Response
 	EmployeeInfo result[QUERY_LOG_COUNT] = {0};
 
 	// 查询员工信息
-	int ret = queryEmployeeInfo(model->empno, model->name, result);
+	int ret = queryEmployeeInfo(model->empno, model->name, result, QUERY_LOG_COUNT);
 	if (ret < 0) goto SERVER_ERR_LABEL;
 
 
@@ -381,7 +381,7 @@ int signInInfoHandler(int fd, RequestInfo *req_head, void *req_data, ResponseInf
 
 	// 查询员工信息
 	EmployeeInfo employee = {0};
-	ret = queryEmployeeInfo(empno, NULL, &employee);
+	ret = queryEmployeeInfo(empno, NULL, &employee, 1);
 	if (ret < 0) goto SERVER_ERR_LABEL;
 
 	// 格式化响应信息

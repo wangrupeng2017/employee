@@ -107,7 +107,7 @@ int checkEmployeeInfo(ename_t name, epwd_t pwd, EmployeeInfo *info)
 	// 格式化SQL语句
 	char sql[256]  = "";
 	char *sql_format = "SELECT no, age, sex, salary, role, name, password, department \
-					    FROM employee  WHERE name='%s'  AND password='%s';";
+					    FROM employee  WHERE name='%s'  AND password='%s' limit 1;";
 	sprintf(sql, sql_format, name, pwd); 
 
 	// 执行查询
@@ -198,15 +198,15 @@ int modifyEmployeeInfo(EmployeeInfo *info)
  * @param [out] info 员工信息
  * @return      查询数量
  */
-int queryEmployeeInfo(uint empno, ename_t name, EmployeeInfo info[QUERY_EMPLOYEE_COUNT])
+int queryEmployeeInfo(uint empno, ename_t name, EmployeeInfo *info, uint max_count)
 {
 	// 格式化查询员工SQL语句
 	char sql[256]  = "";
 	char condition[100] = "";
 	char *sql_format = "SELECT no, age, sex, salary, role, name, password, department \
-					    FROM employee WHERE %s  LIMIT 20;";
+					    FROM employee WHERE %s  LIMIT %d;";
 	(empno > 0) ? sprintf(condition, "no='%d'", empno) : sprintf(condition, "name like '%%%s%%'", name);
-	sprintf(sql, sql_format, condition);
+	sprintf(sql, sql_format, condition, max_count);
 
 	// 执行查询员工信息SQL
 	int ret = execQuerySql(sql, formatEmployeeCall, sizeof(EmployeeInfo), info);
