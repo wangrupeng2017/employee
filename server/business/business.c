@@ -374,10 +374,21 @@ int signInInfoHandler(int fd, RequestInfo *req_head, void *req_data, ResponseInf
 	int empno = checkLoginStateInfo(fd);
 	if (empno < 0) return FuncError;
 
-	char message[100] = "";
-	int ret = querySigninInfo(empno, message);
+	// 查询员工本月签到次数
+	uint signin_count = 0;
+	int ret = querySigninCount(empno, &signin_count);
 	if (ret < 0) goto SERVER_ERR_LABEL;
 
+	// 查询员工信息
+	EmployeeInfo employee = {0};
+	ret = queryEmployeeInfo(empno, NULL, &employee);
+	if (ret < 0) goto SERVER_ERR_LABEL;
+
+	// 格式化响应信息
+	char message[200] = "";
+	uint salary = employee.salary;
+	sprintf(message, "您本月签到%d次，预计能够拿到%.2f元", signin_count, (double)salary*signin_count/30);
+	
 	// 返回签到成功结果
 	res_head->result = Success;
 	strcpy(res_head->message, message);

@@ -12,6 +12,7 @@
 
 #include <sqlite3.h>
 #include "common_base.h"
+#include "common_time.h"
 #include "socket_models.h"
 #include "store_models.h"
 
@@ -29,6 +30,20 @@
 int initSQL(sqlite3 **out);
 // 关闭sqlite3
 int closeSQL();
+
+
+// 查询方法封装
+typedef void (*dataFormatCall) (char **row, void *outdata);
+int execQuerySql(char *sql, dataFormatCall call, int datasize, void *outdatas);
+// 格式化日志信息
+void formatLogCall(char **row, void *outdata);
+// 格式化查询总数方法
+void formatCountCall(char **row, void *outdata);
+// 格式化员工号信息
+void formatEmpnoCall(char **row, void *outdata);
+// 格式化员工信息
+void formatEmployeeCall(char **row, void *outdata);
+
 
 // 校验信息
 int checkEmployeeInfo(ename_t name, epwd_t pwd, EmployeeInfo *info);
@@ -60,6 +75,6 @@ int checkSigninInfo(int empno, int *out);
 // 新增签到信息
 int createSigninInfo(int empno);
 // 查询本月签到情况
-int querySigninInfo(int empno, char out[100]);
+int querySigninCount(int empno, uint *out);
 
 #endif //__MYSQLITE3_H__

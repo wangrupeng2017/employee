@@ -2,7 +2,7 @@
 
 CC=gcc
 Libs=sqlite3
-Objs=$(wildcard store/*.c) $(wildcard network/*.c) $(wildcard business/*.c) $(wildcard iopoll/*.c)
+Objs=$(wildcard store/*.c) $(wildcard network/*.c) $(wildcard business/*.c) $(wildcard iopoll/*.c) $(wildcard ../common/*.c)
 Includes=-I./store -I./network -I./business -I./iopoll -I../common/ 
 
 main:$(Objs) main.c
