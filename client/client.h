@@ -13,6 +13,8 @@
 #define YES "yes"
 #define STR_MALE "男"
 #define STR_FEMALE "女"
+#define LOGIN_CHOOSE 1
+#define LOGOUT_CHOOSE 0
 
 /*
  * Description 		: 连接socket服务器

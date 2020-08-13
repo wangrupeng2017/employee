@@ -6,7 +6,7 @@
 int adminQueryBusiness(int file_descriptor, LoginResult * login_model)
 {
 	int choose = 0;
-
+menu_label:
 	printf("********************  请选择查询的方式  ***********************\n");
 	printf("**************  1:列表显示 2:员工号 3:用户名 ******************\n");
 	printf("***********************  0:退出 *******************************\n");
@@ -58,7 +58,7 @@ Input_Label:
 	if (employee_count == 0)
 	{
 		printf("未查询到指定条件的员工信息, 请换个条件试一试\n");
-		return FuncNormal;
+		goto menu_label;
 	}
 
 	// 打印员工信息
@@ -70,8 +70,8 @@ Input_Label:
 				i+1, e.empno, e.name, e.pwd, e.sex==Male?"男":"女",
 				e.age, e.salary, e.department);
 	}
+	goto menu_label;
 
-	return FuncNormal;
 }
 
 

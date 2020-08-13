@@ -31,17 +31,17 @@ int connectServer(const char *ip, int port)
 	bzero(&server_address, sizeof(server_address));
 	server_address.sin_family = AF_INET;
 	server_address.sin_port = htons(port);
-	
+
 	int ret = inet_pton(AF_INET, ip, (void *)&server_address.sin_addr.s_addr);
 	TRY_ERROR(ret == -1, "string ip convert", goto error_label);
-	
+
 	ret = connect(fd, (struct sockaddr *)&server_address, sizeof(server_address));
 	TRY_ERROR( ret == -1, "connect service", goto error_label);
 
 	return fd;
 
 error_label:
-    close(fd);
+	close(fd);
 	return -1;
 }
 
@@ -60,12 +60,21 @@ error_label:
  */
 int loginBusiness(int fd, LoginModel *login_model, LoginResult *result_model)
 {
-	int ret = -1;
+	int ret = FuncException;
 	showLoginMenu();
-	if((ret = getHomeMenuChoose())){
+login_label:
+	switch(getHomeMenuChoose()){
+	case LOGIN_CHOOSE:
 		getLoginModel(login_model);
 		ret = sendLoginRequest(fd, login_model, result_model);
+		break;
+	case LOGOUT_CHOOSE:
+		exit(FuncNormal);
+	default:
+		printf("输入错误！\n");
+		goto login_label;
 	}
+
 	return ret;
 }
 
@@ -103,7 +112,7 @@ int getHomeMenuChoose(void)
 int getLoginModel(LoginModel *model)
 {
 	char word[32] = {0};
-	
+
 	memset(word, 0, sizeof(word));
 	printf("请输入您的用户名：");
 	getDataFgets(word, sizeof(word));
@@ -178,7 +187,7 @@ int request(int file_descriptor, void * request_head,
 	// 发送请求数据
 	ret = send(file_descriptor, request_data, request_data_size,0);
 	TRY_PERROR(ret == FuncException, "发送请求数据");
-	
+
 	// 接受反回头
 	ret = recv(file_descriptor, response_head, response_head_size, 0);
 	TRY_PERROR(ret == FuncException, "接收请求头数据");
