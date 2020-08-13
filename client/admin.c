@@ -40,7 +40,7 @@ int doAdminBusiness(int file_descriptor, LoginResult * login_model)
  * @Author     : xuyuanbing
  * @Other      : 
  */
- void showAdminMenu(void)
+void showAdminMenu(void)
 {
 	printf("********************  请选择所需的服务  ********************\n");
 	printf("**************  1:添加用户  2:删除用户 3:信息查询 **********\n");
@@ -69,7 +69,7 @@ int gotoAdminChoose(int file_descriptor, int userChoose, LoginResult * login_mod
 		adminQueryLogsBusiness(file_descriptor, login_model);
 		break;
 	case 0:
-	ret = employeeQuitBusiness(file_descriptor, login_model);
+		ret = employeeQuitBusiness(file_descriptor, login_model);
 		break;
 	default :
 		break;
@@ -93,7 +93,7 @@ int getAdminMenuChoose(void)
 	printf("请输入您需要的服务：");
 	while(!(choose = getchar()));
 	while( getchar() != '\n');
-	
+
 	return choose - '0';
 }
 
@@ -117,7 +117,7 @@ int adminAddBusiness(int file_descriptor, LoginResult * login_model)
 	getAdminAddModel(&create_model);
 
 	ret = sendAdminAddRequest(file_descriptor, &create_model, &create_result);
-	 
+
 	return ret;
 }
 
@@ -193,9 +193,9 @@ int sendAdminAddRequest(int file_descriptor, EmployeeCreateModel *create_model, 
 		.size = sizeof(EmployeeCreateModel)
 	};
 	ResponseInfo res = {0};
-	
+
 	ret = request(file_descriptor, &req, sizeof(req), create_model, sizeof(EmployeeCreateModel),
-			 &res, sizeof(res), result, sizeof(EmployeeCreateResult));
+			&res, sizeof(res), result, sizeof(EmployeeCreateResult));
 
 	if( ret ){
 		printf("%s\n", res.message);
@@ -267,7 +267,7 @@ int sendEmployeeDeleteRequest (int file_descriptor, EmployeeDeleteModel *delete_
 		.type = EmployeeDelete,
 		.size = sizeof(EmployeeDeleteModel)
 	};
-	
+
 	ResponseInfo res = {0};
 	int ret = -1;
 	ret = request(file_descriptor, &req, sizeof(req), delete_model, sizeof(EmployeeDeleteModel),
@@ -431,7 +431,12 @@ int getEmployeeNewinfo(EmployeeModifyModel *modify_model)
 		printf("请输入员工的性别："); 
 		bzero(tmp, sizeof(tmp));
 		getDataFgets(tmp, sizeof(tmp));
-		modify_model->sex = (uchar) atoi(tmp);
+
+		if(strncmp(tmp, STR_MALE, sizeof(STR_MALE))){
+			modify_model->sex = Female;
+		}else{
+			modify_model->sex = Male;
+		}
 		break;
 	case 4:
 		printf("请输入员工的年龄："); 
@@ -479,7 +484,7 @@ int sendAdminModifyRequest(int file_descriptor, EmployeeModifyModel *modify_mode
 		.type = EmployeeModify,
 		.size = sizeof(EmployeeModifyModel)
 	};
-	
+
 	ResponseInfo res = {0};
 	int ret = request(file_descriptor, &req, sizeof(req), modify_model, sizeof(EmployeeModifyModel),
 			&res, sizeof(res), NULL, 0); 

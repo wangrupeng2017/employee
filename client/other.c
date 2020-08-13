@@ -15,7 +15,7 @@ Input_Label:
 	fprintf(stderr, "请选择查询的方式：");
 	scanf("%d", &choose);
 	while(getchar() != '\n');
-	if (choose<0 || choose>2)
+	if (choose<0 || choose>3)
 	{
 		printf("输入有误，请重新输入\n");
 		goto Input_Label;
