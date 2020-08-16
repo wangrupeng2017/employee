@@ -409,7 +409,6 @@ int querySigninCount(int empno, uint *out)
 	char *sql_format = "SELECT COUNT(*) FROM signin WHERE no='%d' and time>'%d' and time<'%d';";
 	sprintf(sql, sql_format, empno, nowMonthTstamp, nextMonthTstamp);
 
-	printf("sql:%s\n", sql);
 	// 执行查询本月签到总数SQL
 	uint signin_count = 0;
 	int ret = execQuerySql(sql, formatCountCall, sizeof(uint), &signin_count);

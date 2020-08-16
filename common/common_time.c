@@ -59,8 +59,6 @@ time_t dateTimestamp(uint year, uint month, uint day)
 {
 	char timestr[20] = "";
 	sprintf(timestr, "%d-%d-%d 00:00:00", year, month, day);
-	printf("timestr:%s\n", timestr);
-	printf("year:%d, month:%d, day:%d\n", year, month, day);
 
 	struct tm stm;
 	strptime(timestr, "%Y-%m-%d %H:%M:%S", &stm);

@@ -372,7 +372,7 @@ int sendAdminEmployeeQueryRequest(int file_descriptor, EmployeeQueryModel *req_d
 	// 查询结果员工数量
 	int employee_count = res_head.size/sizeof(EmployeeQueryResult);
 	printf("employee_count = %d\n", employee_count);
-	printf("sizeof %ld\n", sizeof(res_data)/sizeof(EmployeeQueryResult));
+	printf("sizeof %u\n", sizeof(res_data)/sizeof(EmployeeQueryResult));
 	if (employee_count == 0){
 		printf("未查询到指定条件的员工信息, 请换个条件试一试\n");
 		return FuncException;
